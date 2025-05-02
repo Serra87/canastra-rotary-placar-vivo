@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
@@ -9,8 +10,8 @@ const badgeVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground",
         destructive: "bg-destructive text-destructive-foreground",
-        success: "bg-green-600 text-white",           // ✅ nova variante
-        warning: "bg-yellow-400 text-black",          // ✅ nova variante
+        success: "bg-green-600 text-white",
+        warning: "bg-yellow-400 text-black",
       },
     },
     defaultVariants: {
@@ -38,4 +39,3 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
 Badge.displayName = "Badge"
 
 export { Badge, badgeVariants }
-

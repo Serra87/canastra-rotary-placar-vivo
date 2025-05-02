@@ -43,7 +43,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
 
   const handleTeamChange = (teamId: string, side: 'A' | 'B') => {
     const selectedTeam = availableTeams.find(t => t.id === teamId) || {
-      id: '',
+      id: 'undefined',
       name: 'Time a definir',
       players: ['', ''],
       sponsor: { id: '', name: '' },
@@ -71,7 +71,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
   };
 
   const teamOptions = [
-    { id: '', name: 'Time a definir', reEntered: false },
+    { id: 'undefined', name: 'Time a definir', reEntered: false },
     ...availableTeams
       .filter(t => !t.eliminated || t.id === match.teamA.id || t.id === match.teamB.id)
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -107,7 +107,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
             </Label>
             <Input
               id="round"
-              value={editedMatch.round}
+              value={editedMatch.round || ''}
               readOnly
               disabled
               className="col-span-3 bg-slate-50"
@@ -123,7 +123,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
                 <Label className="text-right">Time A</Label>
                 <div className="col-span-3">
                   <Select 
-                    value={editedMatch.teamA.id} 
+                    value={editedMatch.teamA.id || 'undefined'} 
                     onValueChange={(value) => handleTeamChange(value, 'A')}
                   >
                     <SelectTrigger>
@@ -146,7 +146,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
                 <Label className="text-right">Time B</Label>
                 <div className="col-span-3">
                   <Select 
-                    value={editedMatch.teamB.id} 
+                    value={editedMatch.teamB.id || 'undefined'} 
                     onValueChange={(value) => handleTeamChange(value, 'B')}
                   >
                     <SelectTrigger>

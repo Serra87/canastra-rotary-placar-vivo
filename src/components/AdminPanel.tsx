@@ -43,7 +43,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   // Group matches by round
   const matchesByRound: Record<string, Match[]> = {};
   matches.forEach(match => {
-    const roundNumber = parseInt(match.round.replace(/\D/g, ''));
+    if (!match.round) return; // Skip matches without a round
+    
+    const roundNumber = parseInt(match.round.replace(/\D/g, '') || "1");
     const roundKey = `RODADA ${roundNumber}`;
     
     if (!matchesByRound[roundKey]) {
@@ -54,8 +56,8 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
 
   // Get all rounds in order
   const rounds = Object.keys(matchesByRound).sort((a, b) => {
-    const aNum = parseInt(a.replace(/\D/g, ''));
-    const bNum = parseInt(b.replace(/\D/g, ''));
+    const aNum = parseInt(a.replace(/\D/g, '') || "1");
+    const bNum = parseInt(b.replace(/\D/g, '') || "1");
     return aNum - bNum;
   });
 
@@ -849,7 +851,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           open={isTeamDialogOpen}
           onClose={() => setIsTeamDialogOpen(false)}
           onSave={handleSaveTeam}
-          currentRound={parseInt(currentTournament.currentRound.replace(/\D/g, ''))}
+          currentRound={parseInt(currentTournament.currentRound?.replace(/\D/g, '') || "1")}
           maxReentryRound={currentTournament.rules?.reentryAllowedUntilRound || 5}
         />
       )}
