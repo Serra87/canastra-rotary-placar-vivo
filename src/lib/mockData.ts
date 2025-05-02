@@ -1,4 +1,3 @@
-
 import { Tournament, Team, Match, Sponsor } from './types';
 
 // Create sponsors
@@ -15,14 +14,14 @@ const sponsors: Sponsor[] = [
 
 // Create teams
 const teams: Team[] = [
-  { id: '1', name: 'Time A', players: ['João', 'Maria'], sponsor: sponsors[0], eliminated: false, totalPoints: 2500 },
-  { id: '2', name: 'Time B', players: ['Pedro', 'Ana'], sponsor: sponsors[1], eliminated: false, totalPoints: 1800 },
-  { id: '3', name: 'Time C', players: ['Carlos', 'Mariana'], sponsor: sponsors[2], eliminated: false, totalPoints: 2200 },
-  { id: '4', name: 'Time D', players: ['Rafael', 'Juliana'], sponsor: sponsors[3], eliminated: false, totalPoints: 1900 },
-  { id: '5', name: 'Time E', players: ['Gustavo', 'Luciana'], sponsor: sponsors[4], eliminated: false, totalPoints: 2100 },
-  { id: '6', name: 'Time F', players: ['Ricardo', 'Camila'], sponsor: sponsors[5], eliminated: false, totalPoints: 1700 },
-  { id: '7', name: 'Time G', players: ['Fernando', 'Beatriz'], sponsor: sponsors[6], eliminated: false, totalPoints: 2300 },
-  { id: '8', name: 'Time H', players: ['Lucas', 'Isabela'], sponsor: sponsors[7], eliminated: false, totalPoints: 2000 },
+  { id: '1', name: 'Time A', players: ['João', 'Maria'], sponsor: sponsors[0], eliminated: false, totalPoints: 2500, lives: 2 },
+  { id: '2', name: 'Time B', players: ['Pedro', 'Ana'], sponsor: sponsors[1], eliminated: false, totalPoints: 1800, lives: 1 },
+  { id: '3', name: 'Time C', players: ['Carlos', 'Mariana'], sponsor: sponsors[2], eliminated: false, totalPoints: 2200, lives: 2 },
+  { id: '4', name: 'Time D', players: ['Rafael', 'Juliana'], sponsor: sponsors[3], eliminated: false, totalPoints: 1900, lives: 3 },
+  { id: '5', name: 'Time E', players: ['Gustavo', 'Luciana'], sponsor: sponsors[4], eliminated: false, totalPoints: 2100, lives: 1 },
+  { id: '6', name: 'Time F', players: ['Ricardo', 'Camila'], sponsor: sponsors[5], eliminated: false, totalPoints: 1700, lives: 0 },
+  { id: '7', name: 'Time G', players: ['Fernando', 'Beatriz'], sponsor: sponsors[6], eliminated: false, totalPoints: 2300, lives: 2 },
+  { id: '8', name: 'Time H', players: ['Lucas', 'Isabela'], sponsor: sponsors[7], eliminated: false, totalPoints: 2000, lives: 1 },
 ];
 
 // Create matches
@@ -128,7 +127,11 @@ export const mockTournament: Tournament = {
   location: 'Sede do Rotary Club',
   teams,
   matches,
-  currentPhase: 'Semi-Final'
+  currentPhase: 'Semi-Final',
+  rules: {
+    initialLives: 3,
+    pointsToWin: 1500
+  }
 };
 
 // Sort teams by total points

@@ -13,6 +13,7 @@ export interface Team {
   eliminated: boolean;
   rank?: number;
   totalPoints: number;
+  lives: number; // Número de vidas restantes da equipe
 }
 
 export interface Match {
@@ -38,6 +39,10 @@ export interface Tournament {
   teams: Team[];
   matches: Match[];
   currentPhase: string;
+  rules?: {
+    initialLives: number;
+    pointsToWin: number;
+  };
 }
 
 export type User = {

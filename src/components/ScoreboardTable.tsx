@@ -2,6 +2,7 @@
 import { Team } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Heart } from "lucide-react";
 
 interface ScoreboardTableProps {
   teams: Team[];
@@ -10,6 +11,27 @@ interface ScoreboardTableProps {
 export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
   // Sort teams by points in descending order
   const sortedTeams = [...teams].sort((a, b) => b.totalPoints - a.totalPoints);
+  
+  const renderLives = (lives: number) => {
+    return (
+      <div className="flex items-center justify-center space-x-1">
+        {Array.from({ length: lives }).map((_, index) => (
+          <Heart 
+            key={index} 
+            size={14} 
+            className="fill-red-500 text-red-500"
+          />
+        ))}
+        {Array.from({ length: 3 - lives }).map((_, index) => (
+          <Heart 
+            key={`empty-${index}`} 
+            size={14} 
+            className="text-gray-300"
+          />
+        ))}
+      </div>
+    );
+  };
   
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-rotary-gold">
@@ -25,6 +47,7 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
               <TableHead>Time</TableHead>
               <TableHead>Jogadores</TableHead>
               <TableHead className="text-right">Pontos</TableHead>
+              <TableHead className="text-center">Vidas</TableHead>
               <TableHead className="text-center w-24">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -41,6 +64,13 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
                 </TableCell>
                 <TableCell className="text-right font-semibold">
                   {team.totalPoints.toLocaleString('pt-BR')}
+                </TableCell>
+                <TableCell className="text-center">
+                  {team.eliminated ? (
+                    <span className="text-slate-400">0</span>
+                  ) : (
+                    renderLives(team.lives)
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {team.eliminated ? (
