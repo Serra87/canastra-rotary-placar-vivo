@@ -13,17 +13,19 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
   // Group matches by round
   const matchesByRound: Record<string, Match[]> = {};
   matches.forEach(match => {
-    const roundName = `RODADA ${match.round.replace(/\D/g, '')}`;
-    if (!matchesByRound[roundName]) {
-      matchesByRound[roundName] = [];
+    if (match.round) { // Add null check for round
+      const roundName = `RODADA ${match.round}`;
+      if (!matchesByRound[roundName]) {
+        matchesByRound[roundName] = [];
+      }
+      matchesByRound[roundName].push(match);
     }
-    matchesByRound[roundName].push(match);
   });
 
   // Get all rounds in order
   const rounds = Object.keys(matchesByRound).sort((a, b) => {
-    const aNum = parseInt(a.replace(/\D/g, ''));
-    const bNum = parseInt(b.replace(/\D/g, ''));
+    const aNum = parseInt(a.replace(/\D/g, '')) || 0; // Add fallback to 0 if NaN
+    const bNum = parseInt(b.replace(/\D/g, '')) || 0; // Add fallback to 0 if NaN
     return aNum - bNum;
   });
   

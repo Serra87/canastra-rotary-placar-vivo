@@ -15,14 +15,14 @@ const sponsors: Sponsor[] = [
 
 // Create teams
 const teams: Team[] = [
-  { id: '1', name: 'Time A', players: ['João', 'Maria'], sponsor: sponsors[0], eliminated: false, totalPoints: 2500, lives: 2 },
-  { id: '2', name: 'Time B', players: ['Pedro', 'Ana'], sponsor: sponsors[1], eliminated: false, totalPoints: 1800, lives: 1 },
-  { id: '3', name: 'Time C', players: ['Carlos', 'Mariana'], sponsor: sponsors[2], eliminated: false, totalPoints: 2200, lives: 2 },
-  { id: '4', name: 'Time D', players: ['Rafael', 'Juliana'], sponsor: sponsors[3], eliminated: false, totalPoints: 1900, lives: 3 },
-  { id: '5', name: 'Time E', players: ['Gustavo', 'Luciana'], sponsor: sponsors[4], eliminated: false, totalPoints: 2100, lives: 1 },
-  { id: '6', name: 'Time F', players: ['Ricardo', 'Camila'], sponsor: sponsors[5], eliminated: false, totalPoints: 1700, lives: 0 },
-  { id: '7', name: 'Time G', players: ['Fernando', 'Beatriz'], sponsor: sponsors[6], eliminated: false, totalPoints: 2300, lives: 2 },
-  { id: '8', name: 'Time H', players: ['Lucas', 'Isabela'], sponsor: sponsors[7], eliminated: false, totalPoints: 2000, lives: 1 },
+  { id: '1', name: 'Time A', players: ['João', 'Maria'], sponsor: sponsors[0], eliminated: false, totalPoints: 2500, lives: 2, reEntered: false },
+  { id: '2', name: 'Time B', players: ['Pedro', 'Ana'], sponsor: sponsors[1], eliminated: false, totalPoints: 1800, lives: 1, reEntered: false },
+  { id: '3', name: 'Time C', players: ['Carlos', 'Mariana'], sponsor: sponsors[2], eliminated: false, totalPoints: 2200, lives: 2, reEntered: false },
+  { id: '4', name: 'Time D', players: ['Rafael', 'Juliana'], sponsor: sponsors[3], eliminated: false, totalPoints: 1900, lives: 3, reEntered: false },
+  { id: '5', name: 'Time E', players: ['Gustavo', 'Luciana'], sponsor: sponsors[4], eliminated: false, totalPoints: 2100, lives: 1, reEntered: false },
+  { id: '6', name: 'Time F', players: ['Ricardo', 'Camila'], sponsor: sponsors[5], eliminated: false, totalPoints: 1700, lives: 0, reEntered: false },
+  { id: '7', name: 'Time G', players: ['Fernando', 'Beatriz'], sponsor: sponsors[6], eliminated: false, totalPoints: 2300, lives: 2, reEntered: false },
+  { id: '8', name: 'Time H', players: ['Lucas', 'Isabela'], sponsor: sponsors[7], eliminated: false, totalPoints: 2000, lives: 1, reEntered: false },
 ];
 
 // Create matches
@@ -34,7 +34,7 @@ const matches: Match[] = [
     scoreA: 1500,
     scoreB: 1200,
     winner: teams[0],
-    phase: 'Quartas de Final',
+    round: '1',
     tableNumber: 1,
     completed: true,
     inProgress: false,
@@ -48,7 +48,7 @@ const matches: Match[] = [
     scoreA: 1300,
     scoreB: 1400,
     winner: teams[3],
-    phase: 'Quartas de Final',
+    round: '1',
     tableNumber: 2,
     completed: true,
     inProgress: false,
@@ -62,7 +62,7 @@ const matches: Match[] = [
     scoreA: 1600,
     scoreB: 1100,
     winner: teams[4],
-    phase: 'Quartas de Final',
+    round: '1',
     tableNumber: 3,
     completed: true,
     inProgress: false,
@@ -76,7 +76,7 @@ const matches: Match[] = [
     scoreA: 900,
     scoreB: 1800,
     winner: teams[7],
-    phase: 'Quartas de Final',
+    round: '1',
     tableNumber: 4,
     completed: true,
     inProgress: false,
@@ -89,7 +89,7 @@ const matches: Match[] = [
     teamB: teams[3],
     scoreA: 1200,
     scoreB: 1000,
-    phase: 'Semi-Final',
+    round: '2',
     tableNumber: 1,
     completed: false,
     inProgress: true,
@@ -101,7 +101,7 @@ const matches: Match[] = [
     teamB: teams[7],
     scoreA: 0,
     scoreB: 0,
-    phase: 'Semi-Final',
+    round: '2',
     tableNumber: 2,
     completed: false,
     inProgress: false,
@@ -109,11 +109,29 @@ const matches: Match[] = [
   },
   {
     id: '7',
-    teamA: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0, lives: 0 },
-    teamB: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0, lives: 0 },
+    teamA: { 
+      id: '', 
+      name: '?', 
+      players: ['?', '?'], 
+      sponsor: { id: '', name: '' }, 
+      eliminated: false, 
+      totalPoints: 0, 
+      lives: 0,
+      reEntered: false 
+    },
+    teamB: { 
+      id: '', 
+      name: '?', 
+      players: ['?', '?'], 
+      sponsor: { id: '', name: '' }, 
+      eliminated: false, 
+      totalPoints: 0, 
+      lives: 0,
+      reEntered: false 
+    },
     scoreA: 0,
     scoreB: 0,
-    phase: 'Final',
+    round: '3',
     tableNumber: 1,
     completed: false,
     inProgress: false
@@ -128,9 +146,11 @@ export const mockTournament: Tournament = {
   location: 'Sede do Rotary Club',
   teams,
   matches,
-  currentPhase: 'Semi-Final',
+  currentRound: 'RODADA 2',
+  maxRound: 3,
   rules: {
     initialLives: 3,
+    reentryAllowedUntilRound: 5,
     pointsToWin: 1500
   }
 };

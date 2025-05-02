@@ -71,7 +71,7 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
   };
 
   const teamOptions = [
-    { id: '', name: 'Time a definir' },
+    { id: '', name: 'Time a definir', reEntered: false },
     ...availableTeams
       .filter(t => !t.eliminated || t.id === match.teamA.id || t.id === match.teamB.id)
       .sort((a, b) => a.name.localeCompare(b.name))
