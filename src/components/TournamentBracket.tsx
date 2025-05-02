@@ -2,7 +2,7 @@
 import { Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamCard from "./TeamCard";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface TournamentBracketProps {
@@ -10,29 +10,22 @@ interface TournamentBracketProps {
 }
 
 export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
-  // Group matches by phase
-  const matchesByPhase: Record<string, Match[]> = {};
+  // Group matches by round
+  const matchesByRound: Record<string, Match[]> = {};
   matches.forEach(match => {
-    if (!matchesByPhase[match.phase]) {
-      matchesByPhase[match.phase] = [];
+    const roundName = `RODADA ${match.round.replace(/\D/g, '')}`;
+    if (!matchesByRound[roundName]) {
+      matchesByRound[roundName] = [];
     }
-    matchesByPhase[match.phase].push(match);
+    matchesByRound[roundName].push(match);
   });
 
-  // Define the order of phases with new names
-  const phaseOrder = ['Primeira Fase', 'Segunda Fase', 'Fase Final'];
-  
-  // Map the old phase names to new ones for backwards compatibility with existing data
-  const phaseNameMap: Record<string, string> = {
-    'Quartas de Final': 'Primeira Fase',
-    'Semi-Final': 'Segunda Fase',
-    'Final': 'Fase Final'
-  };
-  
-  // Function to get the display name for a phase
-  const getPhaseDisplayName = (phase: string) => {
-    return phaseNameMap[phase] || phase;
-  };
+  // Get all rounds in order
+  const rounds = Object.keys(matchesByRound).sort((a, b) => {
+    const aNum = parseInt(a.replace(/\D/g, ''));
+    const bNum = parseInt(b.replace(/\D/g, ''));
+    return aNum - bNum;
+  });
   
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-rotary-blue">
@@ -41,14 +34,14 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
       </CardHeader>
       <CardContent className="p-4 overflow-hidden">
         <div className="flex flex-nowrap overflow-x-auto gap-6 pb-4 min-w-full">
-          {phaseOrder.map((phase, phaseIndex) => (
-            <div key={phase} className="flex-shrink-0 min-w-[280px] w-full max-w-[350px]">
+          {rounds.map((round, roundIndex) => (
+            <div key={round} className="flex-shrink-0 min-w-[280px] w-full max-w-[350px]">
               <div className="text-lg font-semibold text-center mb-4 px-2 py-1 bg-slate-100 rounded-md text-rotary-navy">
-                {phase}
+                {round}
               </div>
               
               <div className="space-y-12 relative">
-                {matchesByPhase[Object.keys(phaseNameMap).find(key => phaseNameMap[key] === phase) || phase]?.map((match, matchIndex) => (
+                {matchesByRound[round]?.map((match, matchIndex) => (
                   <div key={match.id} className="match-bracket relative">
                     {/* Match info header */}
                     <div className="mb-2 flex justify-between items-center text-sm text-gray-600 px-1">
@@ -77,11 +70,16 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                       }`}>
                         <div className="flex justify-between items-center relative">
                           <div className="flex-1">
-                            <TeamCard 
-                              team={match.teamA} 
-                              showSponsor={false} 
-                              compact={true} 
-                            />
+                            <div className="flex items-center gap-2">
+                              {match.teamA.id && match.teamA.reEntered && (
+                                <AlertTriangle size={16} className="text-yellow-500" />
+                              )}
+                              <TeamCard 
+                                team={match.teamA} 
+                                showSponsor={false} 
+                                compact={true} 
+                              />
+                            </div>
                           </div>
                           <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
                             match.winner?.id === match.teamA.id 
@@ -116,11 +114,16 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                       }`}>
                         <div className="flex justify-between items-center relative">
                           <div className="flex-1">
-                            <TeamCard 
-                              team={match.teamB} 
-                              showSponsor={false} 
-                              compact={true} 
-                            />
+                            <div className="flex items-center gap-2">
+                              {match.teamB.id && match.teamB.reEntered && (
+                                <AlertTriangle size={16} className="text-yellow-500" />
+                              )}
+                              <TeamCard 
+                                team={match.teamB} 
+                                showSponsor={false} 
+                                compact={true} 
+                              />
+                            </div>
                           </div>
                           <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
                             match.winner?.id === match.teamB.id 
@@ -152,15 +155,13 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                         <div className="bg-green-700 text-white border border-green-800 rounded-full flex items-center px-3 py-1 text-sm font-medium shadow-sm animate-pulse-light">
                           <span className="mr-1">Vencedor:</span> 
                           <span className="font-bold">{match.winner.name}</span>
-                          {phaseIndex < phaseOrder.length - 1 && (
-                            <ArrowRight size={16} className="ml-1 text-white" />
-                          )}
+                          <ArrowRight size={16} className="ml-1 text-white" />
                         </div>
                       </div>
                     )}
                     
-                    {/* Connection arrows between phases */}
-                    {phaseIndex < phaseOrder.length - 1 && match.winner && (
+                    {/* Connection arrows between rounds */}
+                    {roundIndex < rounds.length - 1 && match.winner && (
                       <div className="arrow-container absolute">
                         <div className="arrow-line"></div>
                         <div className="arrow-head"></div>

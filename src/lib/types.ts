@@ -13,7 +13,8 @@ export interface Team {
   eliminated: boolean;
   rank?: number;
   totalPoints: number;
-  lives: number; // Número de vidas restantes da equipe
+  lives: number; // Number of lives remaining for the team
+  reEntered: boolean; // Flag to indicate if the team has been re-entered after elimination
 }
 
 export interface Match {
@@ -23,7 +24,7 @@ export interface Match {
   scoreA: number;
   scoreB: number;
   winner?: Team;
-  phase: string;
+  round: string; // Changed from phase to round
   tableNumber?: number;
   completed: boolean;
   inProgress: boolean;
@@ -38,9 +39,11 @@ export interface Tournament {
   location: string;
   teams: Team[];
   matches: Match[];
-  currentPhase: string;
+  currentRound: string; // Changed from currentPhase to currentRound
+  maxRound: number; // Track the highest round number
   rules?: {
     initialLives: number;
+    reentryAllowedUntilRound: number;
     pointsToWin: number;
   };
 }

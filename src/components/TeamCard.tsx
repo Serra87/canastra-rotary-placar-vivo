@@ -1,7 +1,8 @@
 
 import { Team } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Heart } from "lucide-react";
+import { Heart, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TeamCardProps {
   team: Team;
@@ -23,6 +24,8 @@ export const TeamCard = ({ team, showSponsor = true, compact = false }: TeamCard
   const renderLives = () => {
     if (team.eliminated) return null;
     
+    const maxLives = team.reEntered ? 1 : 2; // Re-entered teams have only 1 life
+    
     return (
       <div className="flex items-center space-x-1">
         {Array.from({ length: team.lives }).map((_, index) => (
@@ -32,7 +35,7 @@ export const TeamCard = ({ team, showSponsor = true, compact = false }: TeamCard
             className="fill-red-500 text-red-500"
           />
         ))}
-        {Array.from({ length: 3 - team.lives }).map((_, index) => (
+        {Array.from({ length: maxLives - team.lives }).map((_, index) => (
           <Heart 
             key={`empty-${index}`} 
             size={compact ? 14 : 16} 
@@ -65,7 +68,16 @@ export const TeamCard = ({ team, showSponsor = true, compact = false }: TeamCard
           </div>
           
           <div className={`flex justify-between items-center ${compact ? 'mt-1' : 'mt-2'}`}>
-            {renderLives()}
+            <div className="flex items-center">
+              {renderLives()}
+              
+              {team.reEntered && (
+                <Badge variant="warning" className="ml-2 flex items-center gap-1 bg-yellow-500">
+                  <AlertTriangle size={12} />
+                  <span className="text-xs">Reinscrito</span>
+                </Badge>
+              )}
+            </div>
             
             {team.eliminated && (
               <span className="inline-block px-2 py-1 text-xs rounded-full bg-slate-200 text-slate-600">
