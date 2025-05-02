@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Edit, AlertTriangle, Trash2 } from "lucide-react";
 import TeamEditDialog from "./TeamEditDialog";
 import MatchEditDialog from "./MatchEditDialog";
+import ManualMatchCreator from "./ManualMatchCreator";
+import MatchStatusEditor from "./MatchStatusEditor";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +55,10 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   // Match editing
   const [matchToEdit, setMatchToEdit] = useState<Match | null>(null);
   const [isMatchDialogOpen, setIsMatchDialogOpen] = useState(false);
+  
+  // Status editing
+  const [matchToEditStatus, setMatchToEditStatus] = useState<Match | null>(null);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
 
   // Group matches by round
   const matchesByRound: Record<string, Match[]> = {};
@@ -73,6 +80,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     const bNum = parseInt(b.replace(/\D/g, '') || "1");
     return aNum - bNum;
   });
+  
+  // Get current round number
+  const currentRoundNumber = parseInt(currentTournament.currentRound.replace(/\D/g, '') || "1");
 
   // Create a new round with matches
   const createNewRound = () => {
@@ -119,9 +129,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           id: `match-${nextRound}-${i/2+1}`,
           teamA: teamsAdvancing[i],
           teamB: {
-            id: '',
+            id: 'bye',
             name: 'Bye',
-            players: ['', ''],
+            players: ['', ''] as [string, string],
             sponsor: { id: '', name: '' },
             eliminated: false,
             totalPoints: 0,
@@ -189,7 +199,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     const newTeam: Team = {
       id: newId,
       name: `Nova Dupla ${teams.length + 1}`,
-      players: ["Jogador 1", "Jogador 2"],
+      players: ["Jogador 1", "Jogador 2"] as [string, string],
       sponsor: { id: `sponsor-${teams.length + 1}`, name: "Patrocinador" },
       eliminated: false,
       totalPoints: 0,
@@ -225,9 +235,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           return { 
             ...match, 
             teamA: { 
-              id: '', 
+              id: 'removed', 
               name: 'Time removido', 
-              players: ['', ''], 
+              players: ['', ''] as [string, string], 
               sponsor: { id: '', name: '' }, 
               eliminated: true, 
               totalPoints: 0, 
@@ -241,9 +251,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           return { 
             ...match, 
             teamB: { 
-              id: '', 
+              id: 'removed', 
               name: 'Time removido', 
-              players: ['', ''], 
+              players: ['', ''] as [string, string], 
               sponsor: { id: '', name: '' }, 
               eliminated: true, 
               totalPoints: 0, 
@@ -289,6 +299,24 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
       variant: "success"
     });
   };
+  
+  // Handle match status editing
+  const handleOpenStatusEditor = (match: Match) => {
+    setMatchToEditStatus(match);
+    setIsStatusDialogOpen(true);
+  };
+  
+  const handleSaveMatchWithTeams = (updatedMatch: Match, updatedTeams: Team[]) => {
+    // Update the match
+    setMatches(prevMatches => 
+      prevMatches.map(m => m.id === updatedMatch.id ? updatedMatch : m)
+    );
+    
+    // Update teams with new lives/points/status
+    setTeams(updatedTeams);
+    
+    setIsStatusDialogOpen(false);
+  };
 
   // Update match score
   const handleUpdateScore = (matchId: string, team: 'A' | 'B', score: number) => {
@@ -304,6 +332,18 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
         return match;
       })
     );
+  };
+  
+  // Handle adding a manual match
+  const handleAddManualMatch = (newMatch: Match) => {
+    // Add the match to the current round
+    setMatches([...matches, newMatch]);
+    
+    toast({
+      title: "Partida criada manualmente",
+      description: `${newMatch.teamA.name} vs ${newMatch.teamB.name} adicionada à rodada ${currentRoundNumber}`,
+      variant: "success"
+    });
   };
   
   // Start match
@@ -499,11 +539,18 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
         <TabsContent value="matches">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center flex-wrap gap-2">
                 <CardTitle>Gerenciar Partidas</CardTitle>
-                <Button onClick={createNewRound}>
-                  Criar Nova Rodada
-                </Button>
+                <div className="flex items-center gap-2">
+                  <ManualMatchCreator 
+                    teams={teams.filter(t => !t.eliminated)} 
+                    roundNumber={currentRoundNumber}
+                    onCreateMatch={handleAddManualMatch} 
+                  />
+                  <Button onClick={createNewRound}>
+                    Criar Nova Rodada
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -573,7 +620,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                                       <Badge variant="destructive" className="text-xs">Eliminado</Badge>
                                     )}
                                     {match.completed && match.winner?.id === match.teamA.id && (
-                                      <Badge className="bg-green-700 text-xs">Vencedor</Badge>
+                                      <Badge variant="success" className="text-xs">Vencedor</Badge>
                                     )}
                                   </div>
                                   {match.teamA.id && (
@@ -602,7 +649,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                                       <Badge variant="destructive" className="text-xs">Eliminado</Badge>
                                     )}
                                     {match.completed && match.winner?.id === match.teamB.id && (
-                                      <Badge className="bg-green-700 text-xs">Vencedor</Badge>
+                                      <Badge variant="success" className="text-xs">Vencedor</Badge>
                                     )}
                                   </div>
                                   {match.teamB.id && (
@@ -640,9 +687,13 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              {match.completed && <span className="text-green-700 font-semibold">Finalizada</span>}
-                              {match.inProgress && <span className="text-orange-500">Em andamento</span>}
-                              {!match.inProgress && !match.completed && <span className="text-slate-400">Aguardando</span>}
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleOpenStatusEditor(match)}
+                              >
+                                {match.completed ? "Finalizada" : match.inProgress ? "Em andamento" : "Aguardando"}
+                              </Button>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex gap-2 justify-end">
@@ -989,6 +1040,22 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           availableTeams={teams}
         />
       )}
+      
+      {/* Match status edit dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Status da Partida</DialogTitle>
+          </DialogHeader>
+          {matchToEditStatus && (
+            <MatchStatusEditor 
+              match={matchToEditStatus}
+              teams={teams}
+              onSave={handleSaveMatchWithTeams}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
