@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Edit, AlertTriangle } from "lucide-react";
+import { ArrowRight, Edit, AlertTriangle, Trash2 } from "lucide-react";
 import TeamEditDialog from "./TeamEditDialog";
 import MatchEditDialog from "./MatchEditDialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AdminPanelProps {
   tournament: Tournament;
@@ -35,6 +44,10 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   // Team editing
   const [teamToEdit, setTeamToEdit] = useState<Team | null>(null);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+  
+  // Team deletion
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Match editing
   const [matchToEdit, setMatchToEdit] = useState<Match | null>(null);
@@ -187,6 +200,78 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     setTeams([...teams, newTeam]);
     setTeamToEdit(newTeam);
     setIsTeamDialogOpen(true);
+  };
+
+  // Handle team deletion
+  const handleDeleteTeam = (team: Team) => {
+    setTeamToDelete(team);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteTeam = () => {
+    if (!teamToDelete) return;
+
+    // Check if team is in any matches
+    const isInMatches = matches.some(match => 
+      match.teamA.id === teamToDelete.id || 
+      match.teamB.id === teamToDelete.id ||
+      match.winner?.id === teamToDelete.id
+    );
+
+    if (isInMatches) {
+      // Remove team from matches
+      const updatedMatches = matches.map(match => {
+        if (match.teamA.id === teamToDelete.id) {
+          return { 
+            ...match, 
+            teamA: { 
+              id: '', 
+              name: 'Time removido', 
+              players: ['', ''], 
+              sponsor: { id: '', name: '' }, 
+              eliminated: true, 
+              totalPoints: 0, 
+              lives: 0, 
+              reEntered: false 
+            },
+            completed: true
+          };
+        }
+        if (match.teamB.id === teamToDelete.id) {
+          return { 
+            ...match, 
+            teamB: { 
+              id: '', 
+              name: 'Time removido', 
+              players: ['', ''], 
+              sponsor: { id: '', name: '' }, 
+              eliminated: true, 
+              totalPoints: 0, 
+              lives: 0, 
+              reEntered: false 
+            },
+            completed: true
+          };
+        }
+        if (match.winner?.id === teamToDelete.id) {
+          return { ...match, winner: undefined };
+        }
+        return match;
+      });
+      setMatches(updatedMatches);
+    }
+
+    // Remove team from teams array
+    setTeams(currentTeams => currentTeams.filter(t => t.id !== teamToDelete.id));
+    
+    setIsDeleteDialogOpen(false);
+    setTeamToDelete(null);
+    
+    toast({
+      title: "Time removido",
+      description: `${teamToDelete.name} foi removido do torneio.`,
+      variant: "destructive"
+    });
   };
 
   // Handle match editing
@@ -709,6 +794,15 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                             Editar
                           </Button>
                           
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteTeam(team)}
+                          >
+                            <Trash2 size={14} className="mr-1" />
+                            Excluir
+                          </Button>
+                          
                           {team.eliminated && !team.reEntered && (
                             <Button 
                               variant="warning"
@@ -855,6 +949,35 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
           maxReentryRound={currentTournament.rules?.reentryAllowedUntilRound || 5}
         />
       )}
+      
+      {/* Team delete confirmation dialog */}
+      <AlertDialog 
+        open={isDeleteDialogOpen} 
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o time {teamToDelete?.name}? Esta ação não pode ser desfeita.
+              {matches.some(m => 
+                (m.teamA.id === teamToDelete?.id || m.teamB.id === teamToDelete?.id) && 
+                !m.completed
+              ) && (
+                <p className="mt-2 text-red-500 font-semibold">
+                  Atenção: Este time possui partidas em andamento ou agendadas. Excluí-lo afetará essas partidas.
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTeam}>
+              Excluir Time
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Match edit dialog */}
       {matchToEdit && (
