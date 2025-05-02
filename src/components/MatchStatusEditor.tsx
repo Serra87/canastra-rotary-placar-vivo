@@ -120,7 +120,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     toast({ 
       title: "Resultado salvo", 
       description: "Partida finalizada e placar atualizado",
-      variant: "success"
+      variant: "default"
     });
   };
 

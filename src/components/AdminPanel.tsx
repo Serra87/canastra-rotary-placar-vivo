@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import TeamEditDialog from "./TeamEditDialog";
 import MatchEditDialog from "./MatchEditDialog";
 import ManualMatchCreator from "./ManualMatchCreator";
 import MatchStatusEditor from "./MatchStatusEditor";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,6 +23,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AdminPanelProps {
   tournament: Tournament;
@@ -189,7 +194,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Time atualizado",
       description: `Alterações salvas para ${updatedTeam.name}`,
-      variant: "success"
+      variant: "default"
     });
   };
 
@@ -296,7 +301,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Partida atualizada",
       description: `Alterações salvas para a partida`,
-      variant: "success"
+      variant: "default"
     });
   };
   
@@ -342,7 +347,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Partida criada manualmente",
       description: `${newMatch.teamA.name} vs ${newMatch.teamB.name} adicionada à rodada ${currentRoundNumber}`,
-      variant: "success"
+      variant: "default"
     });
   };
   
@@ -392,7 +397,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Partida finalizada",
       description: `Vencedor: ${winner ? winner.name : 'Empate - Defina um vencedor!'}`,
-      variant: winner ? "success" : "destructive"
+      variant: winner ? "default" : "destructive"
     });
     
     // If there's a winner, update team lives
@@ -469,7 +474,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Vencedor definido",
       description: `${winner.name} venceu a partida.`,
-      variant: "success"
+      variant: "default"
     });
     
     // Update team lives
@@ -523,7 +528,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     toast({
       title: "Time reinscrito",
       description: "O time foi reinscrito com uma vida",
-      variant: "warning"
+      variant: "default"
     });
   };
 

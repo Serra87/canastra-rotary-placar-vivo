@@ -69,7 +69,7 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
     toast({
       title: "Partida criada",
       description: `${teamA.name} vs ${teamB.name}`,
-      variant: "success"
+      variant: "default"
     });
   };
 
