@@ -532,6 +532,17 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     });
   };
 
+  // Handle match deletion
+  const handleDeleteMatch = (matchId: string) => {
+    setMatches(matches.filter(match => match.id !== matchId));
+    
+    toast({
+      title: "Partida removida",
+      description: "A partida foi excluída com sucesso.",
+      variant: "default",
+    });
+  };
+
   return (
     <>
       <Tabs defaultValue="matches" className="w-full">
@@ -709,6 +720,15 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                                 >
                                   <Edit size={14} className="mr-1" />
                                   Editar
+                                </Button>
+
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteMatch(match.id)}
+                                >
+                                  <Trash2 size={14} className="mr-1" />
+                                  Excluir
                                 </Button>
 
                                 {!match.inProgress && !match.completed && match.teamA.id && match.teamB.id && (
