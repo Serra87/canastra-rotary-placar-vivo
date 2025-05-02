@@ -3,6 +3,7 @@ import { Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamCard from "./TeamCard";
 import { ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TournamentBracketProps {
   matches: Match[];
@@ -67,8 +68,14 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                     {/* Match container with teams and scores */}
                     <div className={`match-container border rounded-lg overflow-hidden ${match.winner ? (match.winner.id === match.teamA.id ? 'team-a-winner' : 'team-b-winner') : ''}`}>
                       {/* Team A */}
-                      <div className={`p-3 border-b ${match.winner?.id === match.teamA.id ? 'bg-green-50 border-green-300' : 'border-slate-200'}`}>
-                        <div className="flex justify-between items-center">
+                      <div className={`p-3 border-b ${
+                        match.winner?.id === match.teamA.id 
+                          ? 'bg-green-700/20 border-green-700' 
+                          : match.completed && match.winner?.id !== match.teamA.id 
+                            ? 'bg-red-50 border-red-300 eliminated-team' 
+                            : 'border-slate-200'
+                      }`}>
+                        <div className="flex justify-between items-center relative">
                           <div className="flex-1">
                             <TeamCard 
                               team={match.teamA} 
@@ -76,15 +83,38 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                               compact={true} 
                             />
                           </div>
-                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${match.winner?.id === match.teamA.id ? 'bg-green-100 text-green-800' : 'bg-slate-100'}`}>
+                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
+                            match.winner?.id === match.teamA.id 
+                              ? 'bg-green-700 text-white' 
+                              : match.completed && match.winner?.id !== match.teamA.id 
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-slate-100'
+                          }`}>
                             {match.inProgress || match.completed ? match.scoreA : "-"}
                           </div>
+                          
+                          {/* Elimination indicator for Team A */}
+                          {match.completed && match.winner?.id !== match.teamA.id && (
+                            <div className="absolute inset-0 pointer-events-none eliminated-overlay">
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                <div className="absolute h-[2px] w-full bg-red-500 rotate-12 transform"></div>
+                                <div className="absolute h-[2px] w-full bg-red-500 -rotate-12 transform"></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       
                       {/* Team B */}
-                      <div className={`p-3 ${match.winner?.id === match.teamB.id ? 'bg-green-50 border-green-300' : ''}`}>
-                        <div className="flex justify-between items-center">
+                      <div className={`p-3 ${
+                        match.winner?.id === match.teamB.id 
+                          ? 'bg-green-700/20 border-green-700' 
+                          : match.completed && match.winner?.id !== match.teamB.id 
+                            ? 'bg-red-50 border-red-300 eliminated-team' 
+                            : ''
+                      }`}>
+                        <div className="flex justify-between items-center relative">
                           <div className="flex-1">
                             <TeamCard 
                               team={match.teamB} 
@@ -92,9 +122,26 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                               compact={true} 
                             />
                           </div>
-                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${match.winner?.id === match.teamB.id ? 'bg-green-100 text-green-800' : 'bg-slate-100'}`}>
+                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
+                            match.winner?.id === match.teamB.id 
+                              ? 'bg-green-700 text-white' 
+                              : match.completed && match.winner?.id !== match.teamB.id 
+                                ? 'bg-red-100 text-red-800' 
+                                : 'bg-slate-100'
+                          }`}>
                             {match.inProgress || match.completed ? match.scoreB : "-"}
                           </div>
+                          
+                          {/* Elimination indicator for Team B */}
+                          {match.completed && match.winner?.id !== match.teamB.id && (
+                            <div className="absolute inset-0 pointer-events-none eliminated-overlay">
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                <div className="absolute h-[2px] w-full bg-red-500 rotate-12 transform"></div>
+                                <div className="absolute h-[2px] w-full bg-red-500 -rotate-12 transform"></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -102,11 +149,11 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                     {/* Winner indicator with enhanced visibility */}
                     {match.winner && (
                       <div className="mt-3 flex items-center justify-center">
-                        <div className="bg-green-100 text-green-800 border border-green-300 rounded-full flex items-center px-3 py-1 text-sm font-medium shadow-sm animate-pulse-light">
+                        <div className="bg-green-700 text-white border border-green-800 rounded-full flex items-center px-3 py-1 text-sm font-medium shadow-sm animate-pulse-light">
                           <span className="mr-1">Vencedor:</span> 
                           <span className="font-bold">{match.winner.name}</span>
                           {phaseIndex < phaseOrder.length - 1 && (
-                            <ArrowRight size={16} className="ml-1 text-green-700" />
+                            <ArrowRight size={16} className="ml-1 text-white" />
                           )}
                         </div>
                       </div>
@@ -127,7 +174,8 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
         </div>
       </CardContent>
       
-      <style jsx>{`
+      <style>
+        {`
         .animate-pulse {
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
@@ -164,6 +212,14 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
           border-color: #6ee7b7;
         }
         
+        .eliminated-team {
+          position: relative;
+        }
+        
+        .eliminated-overlay {
+          z-index: 5;
+        }
+        
         /* Arrow styles */
         .arrow-container {
           position: absolute;
@@ -179,7 +235,7 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
           position: absolute;
           width: 100%;
           height: 2px;
-          background-color: #22c55e;
+          background-color: #15803d;
           top: 0;
         }
         
@@ -191,7 +247,7 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
           height: 0;
           border-top: 5px solid transparent;
           border-bottom: 5px solid transparent;
-          border-left: 8px solid #22c55e;
+          border-left: 8px solid #15803d;
         }
         
         @media (max-width: 768px) {
@@ -199,7 +255,8 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
             display: none;
           }
         }
-      `}</style>
+        `}
+      </style>
     </Card>
   );
 };

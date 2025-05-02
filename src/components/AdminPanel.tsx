@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface AdminPanelProps {
   tournament: Tournament;
@@ -96,15 +97,54 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
               </TableHeader>
               <TableBody>
                 {activeMatches.map(match => (
-                  <TableRow key={match.id}>
+                  <TableRow key={match.id} className={
+                    match.completed ? (
+                      match.winner?.id === match.teamA.id 
+                        ? "bg-green-700/10" 
+                        : match.winner?.id === match.teamB.id 
+                          ? "bg-green-700/10" 
+                          : ""
+                    ) : match.inProgress ? "bg-yellow-50" : ""
+                  }>
                     <TableCell>{match.tableNumber || '-'}</TableCell>
-                    <TableCell>{match.phase}</TableCell>
                     <TableCell>
-                      <div>
-                        {match.teamA.name} vs {match.teamB.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {match.teamA.sponsor.name} / {match.teamB.sponsor.name}
+                      {match.phase === "Quartas de Final" ? "Primeira Fase" : 
+                       match.phase === "Semi-Final" ? "Segunda Fase" : 
+                       match.phase === "Final" ? "Fase Final" : match.phase}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-2">
+                        <div className={`rounded p-1 ${match.completed && match.winner?.id === match.teamA.id ? 'bg-green-700/20' : match.completed && match.winner?.id !== match.teamA.id ? 'bg-red-50 relative' : ''}`}>
+                          <div className="flex justify-between">
+                            <span>{match.teamA.name}</span>
+                            {match.completed && match.winner?.id !== match.teamA.id && (
+                              <Badge variant="destructive" className="text-xs">Eliminado</Badge>
+                            )}
+                            {match.completed && match.winner?.id === match.teamA.id && (
+                              <Badge className="bg-green-700 text-xs">Vencedor</Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {match.teamA.sponsor.name}
+                          </div>
+                        </div>
+                        
+                        <div className="text-center text-sm text-muted-foreground">VS</div>
+                        
+                        <div className={`rounded p-1 ${match.completed && match.winner?.id === match.teamB.id ? 'bg-green-700/20' : match.completed && match.winner?.id !== match.teamB.id ? 'bg-red-50 relative' : ''}`}>
+                          <div className="flex justify-between">
+                            <span>{match.teamB.name}</span>
+                            {match.completed && match.winner?.id !== match.teamB.id && (
+                              <Badge variant="destructive" className="text-xs">Eliminado</Badge>
+                            )}
+                            {match.completed && match.winner?.id === match.teamB.id && (
+                              <Badge className="bg-green-700 text-xs">Vencedor</Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {match.teamB.sponsor.name}
+                          </div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -129,7 +169,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      {match.completed && <span className="text-green-600">Finalizado</span>}
+                      {match.completed && <span className="text-green-700 font-semibold">Finalizado</span>}
                       {match.inProgress && <span className="text-orange-500">Em andamento</span>}
                       {!match.inProgress && !match.completed && <span className="text-slate-400">Pendente</span>}
                     </TableCell>
