@@ -2,7 +2,7 @@
 import { Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamCard from "./TeamCard";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface TournamentBracketProps {
   matches: Match[];
@@ -18,8 +18,20 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
     matchesByPhase[match.phase].push(match);
   });
 
-  // Define the order of phases
-  const phaseOrder = ['Quartas de Final', 'Semi-Final', 'Final'];
+  // Define the order of phases with new names
+  const phaseOrder = ['Primeira Fase', 'Segunda Fase', 'Fase Final'];
+  
+  // Map the old phase names to new ones for backwards compatibility with existing data
+  const phaseNameMap: Record<string, string> = {
+    'Quartas de Final': 'Primeira Fase',
+    'Semi-Final': 'Segunda Fase',
+    'Final': 'Fase Final'
+  };
+  
+  // Function to get the display name for a phase
+  const getPhaseDisplayName = (phase: string) => {
+    return phaseNameMap[phase] || phase;
+  };
   
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-rotary-blue">
@@ -35,8 +47,8 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
               </div>
               
               <div className="space-y-12 relative">
-                {matchesByPhase[phase]?.map((match, matchIndex) => (
-                  <div key={match.id} className="match-bracket">
+                {matchesByPhase[Object.keys(phaseNameMap).find(key => phaseNameMap[key] === phase) || phase]?.map((match, matchIndex) => (
+                  <div key={match.id} className="match-bracket relative">
                     {/* Match info header */}
                     <div className="mb-2 flex justify-between items-center text-sm text-gray-600 px-1">
                       <span>Mesa {match.tableNumber || '-'}</span>
@@ -53,48 +65,59 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                     </div>
 
                     {/* Match container with teams and scores */}
-                    <div className="match-container border border-slate-200 rounded-lg overflow-hidden">
+                    <div className={`match-container border rounded-lg overflow-hidden ${match.winner ? (match.winner.id === match.teamA.id ? 'team-a-winner' : 'team-b-winner') : ''}`}>
                       {/* Team A */}
-                      <div className="p-3 border-b border-slate-200">
+                      <div className={`p-3 border-b ${match.winner?.id === match.teamA.id ? 'bg-green-50 border-green-300' : 'border-slate-200'}`}>
                         <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <TeamCard team={match.teamA} showSponsor={false} compact={true} />
+                            <TeamCard 
+                              team={match.teamA} 
+                              showSponsor={false} 
+                              compact={true} 
+                            />
                           </div>
-                          <div className="ml-3 flex items-center justify-center bg-slate-100 w-10 h-10 rounded-full font-bold text-lg">
+                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${match.winner?.id === match.teamA.id ? 'bg-green-100 text-green-800' : 'bg-slate-100'}`}>
                             {match.inProgress || match.completed ? match.scoreA : "-"}
                           </div>
                         </div>
                       </div>
                       
                       {/* Team B */}
-                      <div className="p-3">
+                      <div className={`p-3 ${match.winner?.id === match.teamB.id ? 'bg-green-50 border-green-300' : ''}`}>
                         <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <TeamCard team={match.teamB} showSponsor={false} compact={true} />
+                            <TeamCard 
+                              team={match.teamB} 
+                              showSponsor={false} 
+                              compact={true} 
+                            />
                           </div>
-                          <div className="ml-3 flex items-center justify-center bg-slate-100 w-10 h-10 rounded-full font-bold text-lg">
+                          <div className={`ml-3 flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${match.winner?.id === match.teamB.id ? 'bg-green-100 text-green-800' : 'bg-slate-100'}`}>
                             {match.inProgress || match.completed ? match.scoreB : "-"}
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Winner indicator */}
+                    {/* Winner indicator with enhanced visibility */}
                     {match.winner && (
                       <div className="mt-3 flex items-center justify-center">
-                        <div className="bg-green-100 text-green-800 rounded-full flex items-center px-3 py-1 text-sm">
+                        <div className="bg-green-100 text-green-800 border border-green-300 rounded-full flex items-center px-3 py-1 text-sm font-medium shadow-sm animate-pulse-light">
                           <span className="mr-1">Vencedor:</span> 
-                          <span className="font-semibold">{match.winner.name}</span>
+                          <span className="font-bold">{match.winner.name}</span>
                           {phaseIndex < phaseOrder.length - 1 && (
-                            <ChevronRight size={16} className="ml-1" />
+                            <ArrowRight size={16} className="ml-1 text-green-700" />
                           )}
                         </div>
                       </div>
                     )}
                     
-                    {/* Connection lines between phases */}
+                    {/* Connection arrows between phases */}
                     {phaseIndex < phaseOrder.length - 1 && match.winner && (
-                      <div className="hidden md:block absolute right-[-30px] top-1/2 transform -translate-y-1/2 w-[30px] h-[2px] bg-green-500"></div>
+                      <div className="arrow-container absolute">
+                        <div className="arrow-line"></div>
+                        <div className="arrow-head"></div>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -105,6 +128,14 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
       </CardContent>
       
       <style jsx>{`
+        .animate-pulse {
+          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .animate-pulse-light {
+          animation: pulse-light 2s ease-in-out infinite;
+        }
+        
         @keyframes pulse {
           0%, 100% {
             opacity: 1;
@@ -114,8 +145,59 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
           }
         }
         
-        .animate-pulse {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        @keyframes pulse-light {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+          }
+        }
+        
+        .team-a-winner .team-a {
+          background-color: #ecfdf5;
+          border-color: #6ee7b7;
+        }
+        
+        .team-b-winner .team-b {
+          background-color: #ecfdf5;
+          border-color: #6ee7b7;
+        }
+        
+        /* Arrow styles */
+        .arrow-container {
+          position: absolute;
+          right: -30px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 30px;
+          height: 2px;
+          display: block;
+        }
+        
+        .arrow-line {
+          position: absolute;
+          width: 100%;
+          height: 2px;
+          background-color: #22c55e;
+          top: 0;
+        }
+        
+        .arrow-head {
+          position: absolute;
+          right: 0;
+          top: -4px;
+          width: 0;
+          height: 0;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          border-left: 8px solid #22c55e;
+        }
+        
+        @media (max-width: 768px) {
+          .arrow-container {
+            display: none;
+          }
         }
       `}</style>
     </Card>

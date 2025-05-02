@@ -1,3 +1,4 @@
+
 import { Tournament, Team, Match, Sponsor } from './types';
 
 // Create sponsors
@@ -108,8 +109,8 @@ const matches: Match[] = [
   },
   {
     id: '7',
-    teamA: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0 },
-    teamB: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0 },
+    teamA: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0, lives: 0 },
+    teamB: { id: '', name: '?', players: ['?', '?'], sponsor: { id: '', name: '' }, eliminated: false, totalPoints: 0, lives: 0 },
     scoreA: 0,
     scoreB: 0,
     phase: 'Final',
