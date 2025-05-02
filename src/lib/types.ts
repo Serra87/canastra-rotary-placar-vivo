@@ -1,0 +1,47 @@
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  logo?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  players: [string, string]; // Canasta is played in pairs
+  sponsor: Sponsor;
+  eliminated: boolean;
+  rank?: number;
+  totalPoints: number;
+}
+
+export interface Match {
+  id: string;
+  teamA: Team;
+  teamB: Team;
+  scoreA: number;
+  scoreB: number;
+  winner?: Team;
+  phase: string;
+  tableNumber?: number;
+  completed: boolean;
+  inProgress: boolean;
+  startTime?: Date;
+  endTime?: Date;
+}
+
+export interface Tournament {
+  id: string;
+  name: string;
+  date: Date;
+  location: string;
+  teams: Team[];
+  matches: Match[];
+  currentPhase: string;
+}
+
+export type User = {
+  id: string;
+  username: string;
+  role: 'admin' | 'viewer';
+};
