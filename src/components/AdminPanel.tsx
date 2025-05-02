@@ -19,16 +19,6 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   const { toast } = useToast();
   const [matches, setMatches] = useState<Match[]>(tournament.matches);
   
-  // Group matches by phase
-  const matchesByPhase: Record<string, Match[]> = {};
-  matches.forEach(match => {
-    const displayPhase = getPhaseDisplayName(match.phase);
-    if (!matchesByPhase[displayPhase]) {
-      matchesByPhase[displayPhase] = [];
-    }
-    matchesByPhase[displayPhase].push(match);
-  });
-  
   // Map the old phase names to new ones for backwards compatibility
   const phaseNameMap: Record<string, string> = {
     'Quartas de Final': 'Primeira Fase',
@@ -40,6 +30,16 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   const getPhaseDisplayName = (phase: string) => {
     return phaseNameMap[phase] || phase;
   };
+  
+  // Group matches by phase - moved this after getPhaseDisplayName is defined
+  const matchesByPhase: Record<string, Match[]> = {};
+  matches.forEach(match => {
+    const displayPhase = getPhaseDisplayName(match.phase);
+    if (!matchesByPhase[displayPhase]) {
+      matchesByPhase[displayPhase] = [];
+    }
+    matchesByPhase[displayPhase].push(match);
+  });
   
   // Define the order of phases
   const phaseOrder = ['Primeira Fase', 'Segunda Fase', 'Fase Final'];
