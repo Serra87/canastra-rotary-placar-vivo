@@ -128,6 +128,16 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
       winner: winningTeam,
       completed: true,
       inProgress: false,
+      teamA: {
+        ...match.teamA,
+        lives: teamALives,
+        eliminated: teamALives <= 0 && !match.teamA.reEntered
+      },
+      teamB: {
+        ...match.teamB, 
+        lives: teamBLives,
+        eliminated: teamBLives <= 0 && !match.teamB.reEntered
+      }
     };
 
     onSave(updatedMatch, updatedTeams);

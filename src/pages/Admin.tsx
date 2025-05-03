@@ -1,3 +1,4 @@
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
@@ -19,7 +20,7 @@ const Admin = () => {
     if (tournamentCopy.teams) {
       tournamentCopy.teams = tournamentCopy.teams.map(team => ({
         ...team,
-        lives: Math.max(0, Math.min(2, team.lives)), // Ensure lives between 0 and 2
+        lives: Math.max(0, Math.min(team.reEntered ? 1 : 2, team.lives)), // Ensure lives between 0 and max allowed (1 or 2)
       }));
     }
     
@@ -32,10 +33,21 @@ const Admin = () => {
         const currentWinner = match.winner ? 
           tournamentCopy.teams.find(t => t.id === match.winner?.id) : undefined;
           
+        // Update embedded team data in match to ensure consistency
         return {
           ...match,
-          teamA: currentTeamA || match.teamA,
-          teamB: currentTeamB || match.teamB,
+          teamA: currentTeamA ? { 
+            ...match.teamA, 
+            lives: currentTeamA.lives,
+            eliminated: currentTeamA.eliminated,
+            reEntered: currentTeamA.reEntered
+          } : match.teamA,
+          teamB: currentTeamB ? {
+            ...match.teamB,
+            lives: currentTeamB.lives,
+            eliminated: currentTeamB.eliminated,
+            reEntered: currentTeamB.reEntered
+          } : match.teamB,
           winner: currentWinner
         };
       });

@@ -6,11 +6,10 @@ import { Badge } from "@/components/ui/badge";
 
 interface TeamCardProps {
   team: Team;
-  showSponsor?: boolean;
   compact?: boolean;
 }
 
-export const TeamCard = ({ team, showSponsor = true, compact = false }: TeamCardProps) => {
+export const TeamCard = ({ team, compact = false }: TeamCardProps) => {
   if (!team.id) {
     return (
       <Card className="w-full bg-slate-50 border border-dashed">
