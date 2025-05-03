@@ -13,5 +13,4 @@ export interface TournamentContextType {
   stats: any; // Using any for now to avoid circular import with the stats hook
 }
 
-// Storage key constant
-export const TOURNAMENT_STORAGE_KEY = "rotary-tournament";
+// Storage key constant is now moved to utils.ts
