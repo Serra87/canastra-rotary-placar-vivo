@@ -21,7 +21,6 @@ export const mockTournament: Tournament = {
   currentRound: 'RODADA 1',
   maxRound: 1,
   rules: {
-    initialLives: 3,
     reentryAllowedUntilRound: 5,
     pointsToWin: 1500
   }

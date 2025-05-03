@@ -221,7 +221,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
           id: 'bye',
           name: 'Bye',
           players: ['', ''] as [string, string],
-          sponsor: { id: '', name: '' },
           eliminated: false,
           totalPoints: 0,
           lives: 0,
@@ -390,7 +389,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
               ))}
             </TabsList>
             
-            {/* Keep existing table structure and match rendering */}
             {rounds.map(round => (
               <TabsContent key={round} value={round}>
                 {/* Round header with delete button */}
@@ -468,8 +466,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                               </div>
                               {match.teamA.id && (
                                 <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                  {match.teamA.sponsor.name}
-                                  <span className="ml-2 flex">
+                                  <span className="flex">
                                     {Array.from({ length: match.teamA.lives }).map((_, i) => (
                                       <span key={i} className="text-red-500 mr-1">❤️</span>
                                     ))}
@@ -500,8 +497,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                               </div>
                               {match.teamB.id && (
                                 <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                  {match.teamB.sponsor.name}
-                                  <span className="ml-2 flex">
+                                  <span className="flex">
                                     {Array.from({ length: match.teamB.lives }).map((_, i) => (
                                       <span key={i} className="text-red-500 mr-1">❤️</span>
                                     ))}
@@ -618,7 +614,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                             )}
                           </div>
                           
-                          {/* Display which team advances */}
                           {match.completed && match.winner && (
                             <div className="flex items-center justify-end text-sm text-green-700 mt-2">
                               <span>Avança: {match.winner.name}</span>
@@ -643,7 +638,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
         </CardContent>
       </Card>
 
-      {/* Match edit dialog */}
       {matchToEdit && (
         <MatchEditDialog
           match={matchToEdit}
@@ -654,7 +648,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
         />
       )}
       
-      {/* Match status edit dialog */}
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>

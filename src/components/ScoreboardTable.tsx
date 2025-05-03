@@ -43,7 +43,6 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
           <TableHeader>
             <TableRow className="bg-slate-100">
               <TableHead className="w-12 text-center">Pos.</TableHead>
-              <TableHead>Empresa</TableHead>
               <TableHead>Time</TableHead>
               <TableHead>Jogadores</TableHead>
               <TableHead className="text-right">Pontos</TableHead>
@@ -57,7 +56,6 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
                 <TableCell className="font-medium text-center">
                   {index + 1}
                 </TableCell>
-                <TableCell>{team.sponsor.name}</TableCell>
                 <TableCell>{team.name}</TableCell>
                 <TableCell>
                   {team.players.join(' / ')}

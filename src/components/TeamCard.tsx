@@ -51,7 +51,6 @@ export const TeamCard = ({ team, showSponsor = true, compact = false }: TeamCard
       <CardHeader className={`p-3 bg-rotary-blue text-white ${compact ? 'py-2' : ''}`}>
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">{team.name}</h3>
-          {showSponsor && <p className="text-sm">{team.sponsor.name}</p>}
         </div>
       </CardHeader>
       <CardContent className={`p-3 ${compact ? 'py-2' : ''}`}>
