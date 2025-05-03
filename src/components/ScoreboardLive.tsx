@@ -42,6 +42,11 @@ export default function ScoreboardLive({ tournament }: ScoreboardLiveProps) {
     return aNum - bNum;
   });
 
+  // Filter rounds based on selection
+  const filteredRounds = selectedRound === "all" 
+    ? rounds 
+    : rounds.filter(round => round === selectedRound);
+
   // Hearts display helper function
   const renderHearts = (team: any) => (
     <span className="flex">
