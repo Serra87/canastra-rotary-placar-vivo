@@ -136,12 +136,6 @@ export const useTeamManagement = ({
         }
         
         return updatedTeam;
-      } else if (team.id === winner.id) {
-        // Update winner's points
-        return {
-          ...team,
-          totalPoints: team.totalPoints + 100
-        };
       }
       return team;
     });

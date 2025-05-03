@@ -39,10 +39,8 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     setStatus(value);
     
     // Update match status based on selection
-    let updatedMatch = { ...match };
-    
     if (value === "Aguardando") {
-      updatedMatch = {
+      const updatedMatch = {
         ...match,
         inProgress: false,
         completed: false
@@ -53,7 +51,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
         description: "Partida aguardando início"
       });
     } else if (value === "Iniciada") {
-      updatedMatch = {
+      const updatedMatch = {
         ...match,
         inProgress: true,
         completed: false
@@ -81,18 +79,14 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     const losingTeam = winner === match.teamA.id ? match.teamB : match.teamA;
     let updatedTeams = [...teams];
 
-    // Update winner's points
-    if (winningTeam) {
-      updatedTeams = updatedTeams.map((t) =>
-        t.id === winningTeam.id ? { ...t, totalPoints: t.totalPoints + 100 } : t
-      );
-    }
+    // No points are added to the winner - removed points addition code
 
-    // Reduce loser's lives
+    // Process the loser - deduct one life and check elimination status
     if (losingTeam && losingTeam.id) {
       updatedTeams = updatedTeams.map((t) => {
         if (t.id === losingTeam.id) {
           const newLives = t.lives - 1;
+          // A team is eliminated if it has 0 lives AND hasn't been re-entered
           const eliminated = newLives <= 0 && !t.reEntered;
           
           return {
