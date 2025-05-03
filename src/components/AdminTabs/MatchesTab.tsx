@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Tournament } from "@/lib/types";
+import { Tournament, Match, Team } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,6 +51,19 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
       ...tournament,
       currentRound: nextRound,
       maxRound: Math.max(tournament.maxRound || 1, nextRoundNumber)
+    });
+  };
+  
+  // Update match and teams when a match is completed
+  const handleSaveMatch = (updatedMatch: Match, updatedTeams: Team[]) => {
+    const updatedMatches = matches.map(m => 
+      m.id === updatedMatch.id ? updatedMatch : m
+    );
+    
+    onUpdateTournament({
+      ...tournament,
+      matches: updatedMatches,
+      teams: updatedTeams
     });
   };
   
@@ -129,44 +142,13 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
         <div className="flex justify-between items-center">
           <CardTitle>Gerenciar Partidas</CardTitle>
           <div className="space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // Create a match manually
-                const manualMatch = {
-                  id: `match-${Date.now()}`,
-                  teamA: tournament.teams[0] || { 
-                    id: 'placeholder', 
-                    name: 'Selecione um time', 
-                    players: ['', ''] as [string, string],
-                    eliminated: false,
-                    totalPoints: 0,
-                    lives: 0,
-                    reEntered: false
-                  },
-                  teamB: tournament.teams[1] || { 
-                    id: 'placeholder', 
-                    name: 'Selecione um time', 
-                    players: ['', ''] as [string, string],
-                    eliminated: false,
-                    totalPoints: 0,
-                    lives: 0,
-                    reEntered: false
-                  },
-                  scoreA: 0,
-                  scoreB: 0,
-                  round: tournament.currentRound,
-                  tableNumber: currentRoundMatches.length + 1,
-                  completed: false,
-                  inProgress: false
-                };
-                
-                // Open manual match creator
-                document.getElementById('manual-match-creator')?.click();
-              }}
-            >
-              Criar Manualmente
-            </Button>
+            <ManualMatchCreator
+              teams={tournament.teams}
+              roundNumber={currentRoundNumber}
+              existingMatches={tournament.matches}
+              onCreateMatch={handleAddManualMatch}
+              currentRound={tournament.currentRound}
+            />
             <Button
               onClick={handleNextRound}
               disabled={hasIncompleteMatches}
@@ -195,7 +177,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
                   <p className="text-gray-500 text-lg">
                     Nenhuma partida encontrada para esta rodada.
                     <br />
-                    Clique em "Criar Manualmente" para adicionar partidas.
+                    Use o botão "Criar Partida Manual" para adicionar partidas.
                   </p>
                 </div>
               ) : (
@@ -203,6 +185,8 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
                   <MatchStatusEditor
                     key={match.id}
                     match={match}
+                    teams={tournament.teams}
+                    onSave={handleSaveMatch}
                     onUpdateScore={handleUpdateScore}
                     onStartMatch={() => handleStartMatch(match.id)}
                     onCompleteMatch={() => handleCompleteMatch(match.id)}
@@ -238,6 +222,8 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
                       <MatchStatusEditor
                         key={match.id}
                         match={match}
+                        teams={tournament.teams}
+                        onSave={handleSaveMatch}
                         onUpdateScore={handleUpdateScore}
                         onStartMatch={() => handleStartMatch(match.id)}
                         onCompleteMatch={() => handleCompleteMatch(match.id)}
@@ -253,14 +239,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
           </TabsContent>
         </Tabs>
       </CardContent>
-      
-      {/* Hidden trigger for the manual match creator dialog */}
-      <ManualMatchCreator
-        tournamentId={tournament.id}
-        teams={tournament.teams}
-        currentRound={tournament.currentRound}
-        onCreateMatch={handleAddManualMatch}
-      />
     </Card>
   );
 };

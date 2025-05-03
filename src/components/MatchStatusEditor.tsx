@@ -22,11 +22,27 @@ import { Heart, Plus, Minus } from "lucide-react";
 
 interface MatchStatusEditorProps {
   match: Match;
-  teams: Team[];
-  onSave: (updatedMatch: Match, updatedTeams: Team[]) => void;
+  teams?: Team[];
+  onSave?: (updatedMatch: Match, updatedTeams: Team[]) => void;
+  onUpdateScore?: (matchId: string, team: "A" | "B", score: number) => void;
+  onStartMatch?: () => void;
+  onCompleteMatch?: () => void;
+  onSetWinner?: (matchId: string, team: "A" | "B") => void;
+  onDeleteMatch?: () => void;
+  disabled?: boolean;
 }
 
-export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusEditorProps) {
+export default function MatchStatusEditor({ 
+  match, 
+  teams = [], 
+  onSave, 
+  onUpdateScore,
+  onStartMatch,
+  onCompleteMatch,
+  onSetWinner,
+  onDeleteMatch,
+  disabled = false 
+}: MatchStatusEditorProps) {
   const { toast } = useToast();
   const [status, setStatus] = useState<string>(
     match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando"
@@ -50,7 +66,9 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
         inProgress: false,
         completed: false
       };
-      onSave(updatedMatch, teams);
+      if (onSave) {
+        onSave(updatedMatch, teams);
+      }
       toast({ 
         title: "Status atualizado", 
         description: "Partida aguardando início"
@@ -61,13 +79,21 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
         inProgress: true,
         completed: false
       };
-      onSave(updatedMatch, teams);
+      if (onSave) {
+        onSave(updatedMatch, teams);
+      }
+      if (onStartMatch) {
+        onStartMatch();
+      }
       toast({ 
         title: "Status atualizado", 
         description: "Partida iniciada" 
       });
     } else if (value === "Finalizada") {
       setShowResultDialog(true);
+      if (onCompleteMatch) {
+        onCompleteMatch();
+      }
     }
   };
 
@@ -140,7 +166,14 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
       }
     };
 
-    onSave(updatedMatch, updatedTeams);
+    if (onSave) {
+      onSave(updatedMatch, updatedTeams);
+    }
+
+    if (onSetWinner && winner) {
+      onSetWinner(match.id, winner === match.teamA.id ? 'A' : 'B');
+    }
+
     setShowResultDialog(false);
     toast({ 
       title: "Resultado salvo", 
@@ -167,7 +200,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
   return (
     <div className="space-y-4">
       <Label>Status da Partida</Label>
-      <Select value={status} onValueChange={handleStatusChange}>
+      <Select value={status} onValueChange={handleStatusChange} disabled={disabled}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione o status" />
         </SelectTrigger>
@@ -190,8 +223,14 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                 <Input
                   type="number"
                   value={scoreA}
-                  onChange={(e) => setScoreA(Number(e.target.value))}
+                  onChange={(e) => {
+                    setScoreA(Number(e.target.value));
+                    if (onUpdateScore) {
+                      onUpdateScore(match.id, 'A', Number(e.target.value));
+                    }
+                  }}
                   className="w-24"
+                  disabled={disabled}
                 />
                 <div className="flex items-center space-x-1">
                   <Label className="text-sm">Vidas:</Label>
@@ -200,6 +239,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => handleUpdateTeamLives('A', false)}
+                    disabled={disabled}
                   >
                     <Minus size={14} />
                   </Button>
@@ -209,6 +249,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => handleUpdateTeamLives('A', true)}
+                    disabled={disabled}
                   >
                     <Plus size={14} />
                   </Button>
@@ -223,8 +264,14 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                 <Input
                   type="number"
                   value={scoreB}
-                  onChange={(e) => setScoreB(Number(e.target.value))}
+                  onChange={(e) => {
+                    setScoreB(Number(e.target.value));
+                    if (onUpdateScore) {
+                      onUpdateScore(match.id, 'B', Number(e.target.value));
+                    }
+                  }}
                   className="w-24"
+                  disabled={disabled}
                 />
                 <div className="flex items-center space-x-1">
                   <Label className="text-sm">Vidas:</Label>
@@ -233,6 +280,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => handleUpdateTeamLives('B', false)}
+                    disabled={disabled}
                   >
                     <Minus size={14} />
                   </Button>
@@ -242,6 +290,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => handleUpdateTeamLives('B', true)}
+                    disabled={disabled}
                   >
                     <Plus size={14} />
                   </Button>
@@ -252,7 +301,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
             
             <div>
               <Label>Vencedor</Label>
-              <Select value={winner} onValueChange={setWinner}>
+              <Select value={winner} onValueChange={setWinner} disabled={disabled}>
                 <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Escolha o vencedor" />
                 </SelectTrigger>
@@ -264,7 +313,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
             </div>
             
             <div className="flex justify-end pt-4">
-              <Button onClick={handleConfirmResult}>Confirmar Resultado</Button>
+              <Button onClick={handleConfirmResult} disabled={disabled}>Confirmar Resultado</Button>
             </div>
           </div>
         </DialogContent>

@@ -23,15 +23,17 @@ import { useToast } from "@/components/ui/use-toast";
 interface ManualMatchCreatorProps {
   teams: Team[];
   onCreateMatch: (match: Match) => void;
-  roundNumber: number;
-  existingMatches: Match[]; // Add this to check for teams already playing in the round
+  roundNumber?: number;
+  existingMatches?: Match[]; // Add this to check for teams already playing in the round
+  currentRound?: string;
 }
 
 export const ManualMatchCreator = ({ 
   teams, 
   onCreateMatch, 
-  roundNumber, 
-  existingMatches 
+  roundNumber = 1, 
+  existingMatches = [],
+  currentRound = "RODADA 1"
 }: ManualMatchCreatorProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -42,7 +44,7 @@ export const ManualMatchCreator = ({
   // Find teams already playing in this round
   const teamsAlreadyPlayingIds = new Set<string>();
   existingMatches.forEach(match => {
-    if (match.round === `${roundNumber}` || match.round === `RODADA ${roundNumber}`) {
+    if (match.round === currentRound || match.round === `RODADA ${roundNumber}`) {
       teamsAlreadyPlayingIds.add(match.teamA.id);
       teamsAlreadyPlayingIds.add(match.teamB.id);
     }
@@ -79,7 +81,7 @@ export const ManualMatchCreator = ({
       teamB,
       scoreA: 0,
       scoreB: 0,
-      round: `${roundNumber}`,
+      round: currentRound || `${roundNumber}`,
       completed: false,
       inProgress: false,
       tableNumber: tableNumber ? parseInt(tableNumber) : undefined,
@@ -110,7 +112,7 @@ export const ManualMatchCreator = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Criar Partida Manual</Button>
+        <Button variant="default" id="manual-match-creator">Criar Partida Manual</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
