@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from "react";
 import { Team } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import TeamEditForm from "@/components/Teams/TeamEditForm";
+import { useTeamEditDialog } from "@/hooks/useTeamEditDialog";
 
 interface TeamEditDialogProps {
   team: Team;
@@ -16,41 +15,13 @@ interface TeamEditDialogProps {
 }
 
 const TeamEditDialog = ({ team, open, onClose, onSave, currentRound, maxReentryRound }: TeamEditDialogProps) => {
-  const { toast } = useToast();
-  const [editedTeam, setEditedTeam] = useState<Team>({ ...team });
-
-  // Reset the form when the team prop changes
-  useEffect(() => {
-    if (open) {
-      setEditedTeam({ ...team });
-    }
-  }, [team, open]);
-
-  const handleReenter = () => {
-    if (currentRound > maxReentryRound) {
-      toast({
-        title: "Reinscrição não permitida",
-        description: `Reinscrições são permitidas apenas até a rodada ${maxReentryRound}`,
-        variant: "destructive"
-      });
-      return;
-    }
-  };
-
-  const handleSave = () => {
-    // Validate team data before saving
-    if (!editedTeam.name.trim()) {
-      toast({
-        title: "Erro ao salvar",
-        description: "O nome do time não pode estar vazio",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    onSave(editedTeam);
-    onClose();
-  };
+  const { editedTeam, setEditedTeam, handleSave } = useTeamEditDialog({
+    team,
+    currentRound,
+    maxReentryRound,
+    onSave,
+    onClose
+  });
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
