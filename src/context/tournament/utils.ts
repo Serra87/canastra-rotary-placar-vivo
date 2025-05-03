@@ -1,5 +1,5 @@
 
-import { Team, Match } from "@/lib/types";
+import { Team, Match, Tournament } from "@/lib/types";
 
 // Function to ensure a date is a Date object
 export const ensureDateObject = (dateValue: string | Date): Date => {
@@ -87,3 +87,6 @@ export const checkTeamsInSameRound = (matches: Match[]): boolean => {
   
   return hasDuplicates;
 };
+
+// Storage key constant
+export const TOURNAMENT_STORAGE_KEY = "rotary-tournament";

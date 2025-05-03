@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TrophyIcon, ArrowRight, CalendarIcon, UsersIcon } from "lucide-react";
-import { useTournament } from "@/context/TournamentContext";
+import { useTournament } from "@/context/tournament/TournamentContext";
 
 interface StatCardProps {
   title: string;

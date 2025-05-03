@@ -2,7 +2,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
-import { useTournament } from "@/context/TournamentContext";
+import { useTournament } from "@/context/tournament/TournamentContext";
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2 } from "lucide-react";
 import {

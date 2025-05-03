@@ -5,7 +5,7 @@ import ScoreboardTable from "@/components/ScoreboardTable";
 import TournamentBracket from "@/components/TournamentBracket";
 import ScoreboardLive from "@/components/ScoreboardLive";
 import { Badge } from "@/components/ui/badge";
-import { useTournament } from "@/context/TournamentContext";
+import { useTournament } from "@/context/tournament/TournamentContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon, TrophyIcon, Loader2 } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
