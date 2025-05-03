@@ -1,14 +1,15 @@
 
-import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScoreboardTable from "@/components/ScoreboardTable";
 import TournamentBracket from "@/components/TournamentBracket";
-import { mockTournament, getRankedTeams } from "@/lib/mockData";
+import ScoreboardLive from "@/components/ScoreboardLive";
 import { Badge } from "@/components/ui/badge";
+import { useTournament } from "@/context/TournamentContext";
 
 const Index = () => {
-  const [rankedTeams] = useState(getRankedTeams());
+  // Usar o contexto global em vez dos dados mock estáticos
+  const { tournament, rankedTeams } = useTournament();
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,16 +23,18 @@ const Index = () => {
             </h1>
             <div className="flex items-center">
               <Badge variant="outline" className="bg-rotary-gold text-white mr-3">
-                {mockTournament.currentRound}
+                {tournament.currentRound}
               </Badge>
               <span className="text-sm text-gray-600">
-                {mockTournament.date.toLocaleDateString('pt-BR')}
+                {tournament.date.toLocaleDateString('pt-BR')}
               </span>
             </div>
           </div>
           
           <div className="space-y-8">
-            <TournamentBracket matches={mockTournament.matches} />
+            <ScoreboardLive tournament={tournament} />
+            
+            <TournamentBracket matches={tournament.matches} />
             
             <ScoreboardTable teams={rankedTeams} />
           </div>

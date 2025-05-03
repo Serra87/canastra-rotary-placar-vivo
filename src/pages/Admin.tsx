@@ -2,93 +2,11 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
-import { mockTournament } from "@/lib/mockData";
-import { useState } from "react";
-import { Tournament } from "@/lib/types";
+import { useTournament } from "@/context/TournamentContext";
 
 const Admin = () => {
-  // Keeping the tournament state at this level helps with state sharing
-  // between AdminPanel and other components that might need the data
-  const [tournament, setTournament] = useState<Tournament>(mockTournament);
-  
-  // Function to update tournament data (could be used by child components)
-  const updateTournament = (updatedTournament: Tournament) => {
-    // Create a deep copy to avoid reference issues
-    const tournamentCopy = JSON.parse(JSON.stringify(updatedTournament));
-    
-    // Ensure teams have correct lives limits
-    if (tournamentCopy.teams) {
-      tournamentCopy.teams = tournamentCopy.teams.map(team => ({
-        ...team,
-        lives: Math.max(0, Math.min(team.reEntered ? 1 : 2, team.lives)), // Ensure lives between 0 and max allowed (1 or 2)
-      }));
-    }
-    
-    // Ensure match references use the latest team data
-    if (tournamentCopy.matches && tournamentCopy.teams) {
-      tournamentCopy.matches = tournamentCopy.matches.map(match => {
-        // Find latest team references
-        const currentTeamA = tournamentCopy.teams.find(t => t.id === match.teamA.id);
-        const currentTeamB = tournamentCopy.teams.find(t => t.id === match.teamB.id);
-        const currentWinner = match.winner ? 
-          tournamentCopy.teams.find(t => t.id === match.winner?.id) : undefined;
-          
-        // Update embedded team data in match to ensure consistency
-        return {
-          ...match,
-          teamA: currentTeamA ? { 
-            ...match.teamA, 
-            lives: currentTeamA.lives,
-            eliminated: currentTeamA.eliminated,
-            reEntered: currentTeamA.reEntered
-          } : match.teamA,
-          teamB: currentTeamB ? {
-            ...match.teamB,
-            lives: currentTeamB.lives,
-            eliminated: currentTeamB.eliminated,
-            reEntered: currentTeamB.reEntered
-          } : match.teamB,
-          winner: currentWinner
-        };
-      });
-    }
-    
-    // Check for teams that are in multiple matches within the same round
-    const checkTeamsInSameRound = () => {
-      const matchesByRound: Record<string, string[]> = {};
-      
-      tournamentCopy.matches.forEach(match => {
-        if (!match.round) return;
-        
-        const roundKey = match.round.startsWith("RODADA") ? match.round : `RODADA ${match.round}`;
-        if (!matchesByRound[roundKey]) {
-          matchesByRound[roundKey] = [];
-        }
-        
-        matchesByRound[roundKey].push(match.teamA.id, match.teamB.id);
-      });
-      
-      // Check each round for duplicate teams
-      let hasDuplicates = false;
-      Object.entries(matchesByRound).forEach(([round, teamIds]) => {
-        const uniqueTeamIds = new Set(teamIds);
-        if (uniqueTeamIds.size < teamIds.length) {
-          console.warn(`AVISO: Há equipes jogando múltiplas partidas na ${round}`);
-          hasDuplicates = true;
-        }
-      });
-      
-      return hasDuplicates;
-    };
-    
-    // Run the check but don't block the update - just log warnings
-    checkTeamsInSameRound();
-    
-    setTournament(tournamentCopy);
-    
-    // Here we could add logic to persist changes or sync with backend
-    console.log("Tournament updated and synced with scoreboard", tournamentCopy);
-  };
+  // Usando o contexto global em vez do estado local
+  const { tournament, updateTournament } = useTournament();
 
   return (
     <div className="flex flex-col min-h-screen">
