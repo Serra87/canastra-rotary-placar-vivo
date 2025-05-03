@@ -9,9 +9,10 @@ import SettingsTab from "@/components/AdminTabs/SettingsTab";
 interface AdminPanelProps {
   tournament: Tournament;
   onUpdateTournament?: (tournament: Tournament) => void;
+  loading?: boolean;
 }
 
-export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) => {
+export const AdminPanel = ({ tournament, onUpdateTournament, loading = false }: AdminPanelProps) => {
   const [currentTournament, setCurrentTournament] = useState<Tournament>({
     ...tournament,
     currentRound: tournament.currentRound || "RODADA 1",
@@ -58,6 +59,7 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
           <MatchesTab 
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
+            loading={loading}
           />
         </TabsContent>
         
@@ -65,6 +67,7 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
           <TeamsTab 
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
+            loading={loading}
           />
         </TabsContent>
         
@@ -72,6 +75,7 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
           <SettingsTab
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
+            loading={loading}
           />
         </TabsContent>
       </Tabs>

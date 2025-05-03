@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 interface SettingsTabProps {
   tournament: Tournament;
   onUpdateTournament: (tournament: Tournament) => void;
+  loading?: boolean;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournament }) => {
+const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournament, loading = false }) => {
   const { toast } = useToast();
   const [currentTournament, setCurrentTournament] = useState<Tournament>({
     ...tournament,
@@ -30,6 +33,51 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournamen
       description: "As alterações foram aplicadas ao torneio."
     });
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações do Torneio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div>
+              <Label>Nome do Torneio</Label>
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Label>Local</Label>
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Label>Data</Label>
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="border-t pt-4 mt-2">
+              <h3 className="font-semibold mb-4">Regras do Torneio</h3>
+              <div className="grid gap-4">
+                <div>
+                  <Label>Limite de Rodada para Reinscrição</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div>
+                  <Label>Pontos para Vencer</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Carregando
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -112,8 +160,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournamen
           </div>
           
           <div className="mt-2 flex justify-end">
-            <Button onClick={handleSaveSettings}>
-              Salvar Alterações
+            <Button onClick={handleSaveSettings} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : "Salvar Alterações"}
             </Button>
           </div>
         </div>

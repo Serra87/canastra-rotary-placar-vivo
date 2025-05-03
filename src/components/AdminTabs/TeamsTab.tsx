@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
-import { Team, Tournament } from "@/lib/types";
+import { Team, Tournament, Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Edit, Trash2 } from "lucide-react";
+import { AlertTriangle, Edit, Trash2, Loader2 } from "lucide-react";
 import TeamEditDialog from "@/components/TeamEditDialog";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
 import {
@@ -17,14 +16,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Match } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TeamsTabProps {
   tournament: Tournament;
   onUpdateTournament: (tournament: Tournament) => void;
+  loading?: boolean;
 }
 
-const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) => {
+const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament, loading = false }) => {
   const currentRoundNumber = parseInt(tournament.currentRound.replace(/\D/g, '') || "1");
   
   // Custom hook for team management with matches passed
@@ -145,6 +145,53 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
     setIsDeleteDialogOpen(false);
     setTeamToDelete(null);
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Gerenciar Times</CardTitle>
+            <Button disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Carregando...
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Jogadores</TableHead>
+                <TableHead className="text-center">Vidas</TableHead>
+                <TableHead className="text-center">Pontos</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[1, 2, 3].map((i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                  <TableCell className="text-center"><Skeleton className="h-5 w-12 mx-auto" /></TableCell>
+                  <TableCell className="text-center"><Skeleton className="h-5 w-12 mx-auto" /></TableCell>
+                  <TableCell className="text-center"><Skeleton className="h-5 w-16 mx-auto" /></TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
+                      <Skeleton className="h-9 w-20" />
+                      <Skeleton className="h-9 w-20" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
