@@ -1,10 +1,21 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
 import { mockTournament } from "@/lib/mockData";
+import { useState } from "react";
+import { Tournament } from "@/lib/types";
 
 const Admin = () => {
+  // Keeping the tournament state at this level helps with state sharing
+  // between AdminPanel and other components that might need the data
+  const [tournament, setTournament] = useState<Tournament>(mockTournament);
+  
+  // Function to update tournament data (could be used by child components)
+  const updateTournament = (updatedTournament: Tournament) => {
+    setTournament(updatedTournament);
+    // Here we could add logic to persist changes or sync with backend
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -20,7 +31,10 @@ const Admin = () => {
             </p>
           </div>
           
-          <AdminPanel tournament={mockTournament} />
+          <AdminPanel 
+            tournament={tournament} 
+            onUpdateTournament={updateTournament}
+          />
         </div>
       </main>
       

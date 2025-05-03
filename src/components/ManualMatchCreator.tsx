@@ -73,7 +73,11 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
     });
   };
 
-  const availableTeams = teams.filter(team => !team.eliminated);
+  // Filter teams to only include those that have at least 1 life 
+  // OR have been re-entered, even if marked as eliminated
+  const availableTeams = teams.filter(team => 
+    (team.lives > 0 || team.reEntered) && !team.eliminated
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -93,7 +97,9 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
               </SelectTrigger>
               <SelectContent>
                 {availableTeams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name} {team.reEntered && "🔄"} {team.lives === 1 && "❤️"}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -107,7 +113,9 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
               </SelectTrigger>
               <SelectContent>
                 {availableTeams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name} {team.reEntered && "🔄"} {team.lives === 1 && "❤️"}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

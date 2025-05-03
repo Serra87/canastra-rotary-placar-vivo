@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Edit, AlertTriangle, Trash2 } from "lucide-react";
 import TeamEditDialog from "./TeamEditDialog";
@@ -32,9 +32,10 @@ import {
 
 interface AdminPanelProps {
   tournament: Tournament;
+  onUpdateTournament?: (tournament: Tournament) => void;
 }
 
-export const AdminPanel = ({ tournament }: AdminPanelProps) => {
+export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) => {
   const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>(tournament.teams);
   const [matches, setMatches] = useState<Match[]>(tournament.matches);
@@ -65,6 +66,17 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   const [matchToEditStatus, setMatchToEditStatus] = useState<Match | null>(null);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
 
+  // Sync state with parent component after any significant change
+  const syncWithParent = () => {
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        teams,
+        matches
+      });
+    }
+  };
+
   // Group matches by round
   const matchesByRound: Record<string, Match[]> = {};
   matches.forEach(match => {
@@ -94,10 +106,9 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     const currentRound = currentTournament.maxRound;
     const nextRound = currentRound + 1;
     
-    // Get teams that lost lives but aren't eliminated in the current round
+    // FIXED: Get teams that have at least 1 life OR have been re-entered, but NOT eliminated
     const teamsAdvancing = teams.filter(team => 
-      team.lives > 0 && 
-      !team.eliminated
+      (team.lives > 0 || team.reEntered) && !team.eliminated
     );
 
     // Check if we have enough teams
@@ -154,17 +165,29 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     }
 
     // Update state
-    setMatches([...matches, ...newMatches]);
-    setCurrentTournament(prev => ({
-      ...prev,
+    const updatedMatches = [...matches, ...newMatches];
+    setMatches(updatedMatches);
+    
+    const updatedTournament = {
+      ...currentTournament,
       maxRound: nextRound,
       currentRound: `RODADA ${nextRound}`
-    }));
+    };
+    setCurrentTournament(updatedTournament);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...updatedTournament,
+        teams,
+        matches: updatedMatches
+      });
+    }
 
     toast({
       title: "Nova rodada criada",
       description: `RODADA ${nextRound} foi criada com ${newMatches.length} partidas`,
-      variant: "success"
+      variant: "default"
     });
   };
 
@@ -175,10 +198,11 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   };
 
   const handleSaveTeam = (updatedTeam: Team) => {
-    setTeams(prevTeams => prevTeams.map(t => t.id === updatedTeam.id ? updatedTeam : t));
+    const updatedTeams = teams.map(t => t.id === updatedTeam.id ? updatedTeam : t);
+    setTeams(updatedTeams);
     
     // Also update team in matches
-    setMatches(prevMatches => prevMatches.map(match => {
+    const updatedMatches = matches.map(match => {
       if (match.teamA.id === updatedTeam.id) {
         return { ...match, teamA: updatedTeam };
       }
@@ -189,7 +213,11 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
         return { ...match, winner: updatedTeam };
       }
       return match;
-    }));
+    });
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    syncWithParent();
     
     toast({
       title: "Time atualizado",
@@ -277,10 +305,29 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     }
 
     // Remove team from teams array
-    setTeams(currentTeams => currentTeams.filter(t => t.id !== teamToDelete.id));
+    const updatedTeams = teams.filter(t => t.id !== teamToDelete.id);
+    setTeams(updatedTeams);
     
     setIsDeleteDialogOpen(false);
     setTeamToDelete(null);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        teams: updatedTeams,
+        matches: isInMatches ? matches.map(match => {
+          // Same logic as above for matches
+          if (match.teamA.id === teamToDelete.id || match.teamB.id === teamToDelete.id) {
+            return {
+              ...match,
+              completed: true
+            };
+          }
+          return match;
+        }) : matches
+      });
+    }
     
     toast({
       title: "Time removido",
@@ -296,7 +343,16 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   };
 
   const handleSaveMatch = (updatedMatch: Match) => {
-    setMatches(prevMatches => prevMatches.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        matches: updatedMatches
+      });
+    }
     
     toast({
       title: "Partida atualizada",
@@ -313,36 +369,61 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   
   const handleSaveMatchWithTeams = (updatedMatch: Match, updatedTeams: Team[]) => {
     // Update the match
-    setMatches(prevMatches => 
-      prevMatches.map(m => m.id === updatedMatch.id ? updatedMatch : m)
-    );
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
     
     // Update teams with new lives/points/status
     setTeams(updatedTeams);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        teams: updatedTeams,
+        matches: updatedMatches
+      });
+    }
     
     setIsStatusDialogOpen(false);
   };
 
   // Update match score
   const handleUpdateScore = (matchId: string, team: 'A' | 'B', score: number) => {
-    setMatches(
-      matches.map(match => {
-        if (match.id === matchId) {
-          if (team === 'A') {
-            return { ...match, scoreA: score };
-          } else {
-            return { ...match, scoreB: score };
-          }
+    const updatedMatches = matches.map(match => {
+      if (match.id === matchId) {
+        if (team === 'A') {
+          return { ...match, scoreA: score };
+        } else {
+          return { ...match, scoreB: score };
         }
-        return match;
-      })
-    );
+      }
+      return match;
+    });
+    
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        matches: updatedMatches
+      });
+    }
   };
   
   // Handle adding a manual match
   const handleAddManualMatch = (newMatch: Match) => {
     // Add the match to the current round
-    setMatches([...matches, newMatch]);
+    const updatedMatches = [...matches, newMatch];
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        matches: updatedMatches
+      });
+    }
     
     toast({
       title: "Partida criada manualmente",
@@ -353,14 +434,22 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
   
   // Start match
   const handleStartMatch = (matchId: string) => {
-    setMatches(
-      matches.map(match => {
-        if (match.id === matchId) {
-          return { ...match, inProgress: true };
-        }
-        return match;
-      })
-    );
+    const updatedMatches = matches.map(match => {
+      if (match.id === matchId) {
+        return { ...match, inProgress: true };
+      }
+      return match;
+    });
+    
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        matches: updatedMatches
+      });
+    }
     
     toast({
       title: "Partida iniciada",
@@ -406,36 +495,42 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
       let loser = winner.id === match.teamA.id ? match.teamB : match.teamA;
       
       if (loser.id) {  // Only proceed if there's a valid loser team
-        setTeams(prevTeams => {
-          return prevTeams.map(team => {
-            if (team.id === loser.id) {
-              const newLives = team.lives - 1;
-              const eliminated = newLives <= 0;
-              
-              // Update the loser in the teams array
-              const updatedTeam = {
-                ...team,
-                lives: newLives,
-                eliminated
-              };
-              
-              // Also update the loser reference for the match
-              loser = updatedTeam;
-              
-              // Update winner's points
-              const winnerIndex = prevTeams.findIndex(t => t.id === winner?.id);
-              if (winnerIndex >= 0) {
-                prevTeams[winnerIndex] = {
-                  ...prevTeams[winnerIndex],
-                  totalPoints: prevTeams[winnerIndex].totalPoints + 100
-                };
-              }
-              
-              return updatedTeam;
-            }
-            return team;
-          });
+        const updatedTeams = teams.map(team => {
+          if (team.id === loser.id) {
+            const newLives = team.lives - 1;
+            const eliminated = newLives <= 0;
+            
+            // Update the loser in the teams array
+            const updatedTeam = {
+              ...team,
+              lives: newLives,
+              eliminated
+            };
+            
+            // Also update the loser reference for the match
+            loser = updatedTeam;
+            
+            return updatedTeam;
+          } else if (team.id === winner.id) {
+            // Update winner's points
+            return {
+              ...team,
+              totalPoints: team.totalPoints + 100
+            };
+          }
+          return team;
         });
+        
+        setTeams(updatedTeams);
+        
+        // Sync with parent
+        if (onUpdateTournament) {
+          onUpdateTournament({
+            ...currentTournament,
+            teams: updatedTeams,
+            matches: updatedMatches
+          });
+        }
 
         // Show toast if team is eliminated
         if (loser.lives <= 1) {  // Will become 0 after update
@@ -479,21 +574,36 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
     
     // Update team lives
     if (loser.id) {
-      setTeams(prevTeams => {
-        return prevTeams.map(team => {
-          if (team.id === loser.id) {
-            const newLives = team.lives - 1;
-            const eliminated = newLives <= 0;
-            
-            return {
-              ...team,
-              lives: newLives,
-              eliminated
-            };
-          }
-          return team;
-        });
+      const updatedTeams = teams.map(team => {
+        if (team.id === loser.id) {
+          const newLives = team.lives - 1;
+          const eliminated = newLives <= 0;
+          
+          return {
+            ...team,
+            lives: newLives,
+            eliminated
+          };
+        } else if (team.id === winner.id) {
+          // Update winner's points
+          return {
+            ...team,
+            totalPoints: team.totalPoints + 100
+          };
+        }
+        return team;
       });
+      
+      setTeams(updatedTeams);
+      
+      // Sync with parent
+      if (onUpdateTournament) {
+        onUpdateTournament({
+          ...currentTournament,
+          teams: updatedTeams,
+          matches: updatedMatches
+        });
+      }
     }
   };
 
@@ -511,19 +621,27 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
       return;
     }
 
-    setTeams(prevTeams => {
-      return prevTeams.map(team => {
-        if (team.id === teamId) {
-          return {
-            ...team,
-            lives: 1,
-            eliminated: false,
-            reEntered: true
-          };
-        }
-        return team;
-      });
+    const updatedTeams = teams.map(team => {
+      if (team.id === teamId) {
+        return {
+          ...team,
+          lives: 1,
+          eliminated: false,
+          reEntered: true
+        };
+      }
+      return team;
     });
+    
+    setTeams(updatedTeams);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        teams: updatedTeams
+      });
+    }
     
     toast({
       title: "Time reinscrito",
@@ -534,7 +652,16 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
 
   // Handle match deletion
   const handleDeleteMatch = (matchId: string) => {
-    setMatches(matches.filter(match => match.id !== matchId));
+    const updatedMatches = matches.filter(match => match.id !== matchId);
+    setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateTournament) {
+      onUpdateTournament({
+        ...currentTournament,
+        matches: updatedMatches
+      });
+    }
     
     toast({
       title: "Partida removida",
@@ -559,7 +686,7 @@ export const AdminPanel = ({ tournament }: AdminPanelProps) => {
                 <CardTitle>Gerenciar Partidas</CardTitle>
                 <div className="flex items-center gap-2">
                   <ManualMatchCreator 
-                    teams={teams.filter(t => !t.eliminated)} 
+                    teams={teams} 
                     roundNumber={currentRoundNumber}
                     onCreateMatch={handleAddManualMatch} 
                   />
