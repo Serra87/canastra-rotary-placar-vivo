@@ -46,9 +46,16 @@ const Index = () => {
           </div>
           
           <div className="space-y-8">
-            <ScoreboardLive tournament={tournament} />
-            
-            <TournamentBracket matches={tournament.matches} />
+            {tournament.matches.length === 0 ? (
+              <div className="text-center py-10 bg-gray-50 rounded-lg">
+                <p className="text-gray-500 text-lg">Nenhuma partida encontrada. O torneio ainda não foi iniciado.</p>
+              </div>
+            ) : (
+              <>
+                <ScoreboardLive tournament={tournament} />
+                <TournamentBracket matches={tournament.matches} />
+              </>
+            )}
             
             <ScoreboardTable teams={rankedTeams} />
           </div>

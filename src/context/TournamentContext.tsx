@@ -8,6 +8,7 @@ interface TournamentContextType {
   tournament: Tournament;
   updateTournament: (updatedTournament: Tournament) => void;
   rankedTeams: ReturnType<typeof getRankedTeams>;
+  resetTournament: () => void;
 }
 
 // Criar o contexto
@@ -112,8 +113,23 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     console.log("Torneio atualizado e sincronizado com o placar", tournamentCopy);
   };
 
+  // Nova função para resetar o torneio
+  const resetTournament = () => {
+    const resetTournamentData = {
+      ...tournament,
+      teams: [],
+      matches: [],
+      currentRound: "RODADA 1",
+      maxRound: 1,
+    };
+
+    setTournament(resetTournamentData);
+    setRankedTeams([]);
+    console.log("Torneio resetado com sucesso", resetTournamentData);
+  };
+
   return (
-    <TournamentContext.Provider value={{ tournament, updateTournament, rankedTeams }}>
+    <TournamentContext.Provider value={{ tournament, updateTournament, rankedTeams, resetTournament }}>
       {children}
     </TournamentContext.Provider>
   );
