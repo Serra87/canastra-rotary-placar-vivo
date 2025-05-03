@@ -79,8 +79,6 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     const losingTeam = winner === match.teamA.id ? match.teamB : match.teamA;
     let updatedTeams = [...teams];
 
-    // No points are added to the winner - removed points addition code
-
     // Process the loser - deduct one life and check elimination status
     if (losingTeam && losingTeam.id) {
       updatedTeams = updatedTeams.map((t) => {
@@ -118,6 +116,21 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     });
   };
 
+  // Helper function to render hearts for teams
+  const renderHearts = (team: Team) => (
+    <div className="flex items-center mt-1">
+      {Array.from({ length: team.lives }).map((_, i) => (
+        <span key={i} className="text-red-500 mr-0.5">❤️</span>
+      ))}
+      {Array.from({ length: (team.reEntered ? 1 : 2) - team.lives }).map((_, i) => (
+        <span key={`empty-${i}`} className="text-gray-300 mr-0.5">♡</span>
+      ))}
+      <span className="ml-2 text-xs">
+        {team.eliminated ? "Eliminado" : team.reEntered ? "Reinscrito" : "Ativo"}
+      </span>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <Label>Status da Partida</Label>
@@ -145,6 +158,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                 value={scoreA}
                 onChange={(e) => setScoreA(Number(e.target.value))}
               />
+              {renderHearts(match.teamA)}
             </div>
             <div>
               <Label>{match.teamB.name}</Label>
@@ -153,6 +167,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                 value={scoreB}
                 onChange={(e) => setScoreB(Number(e.target.value))}
               />
+              {renderHearts(match.teamB)}
             </div>
             <div>
               <Label>Vencedor</Label>
