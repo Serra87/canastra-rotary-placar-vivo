@@ -13,22 +13,25 @@ const Admin = () => {
   
   // Function to update tournament data (could be used by child components)
   const updateTournament = (updatedTournament: Tournament) => {
+    // Create a deep copy to avoid reference issues
+    const tournamentCopy = JSON.parse(JSON.stringify(updatedTournament));
+    
     // Ensure teams have correct lives limits
-    if (updatedTournament.teams) {
-      updatedTournament.teams = updatedTournament.teams.map(team => ({
+    if (tournamentCopy.teams) {
+      tournamentCopy.teams = tournamentCopy.teams.map(team => ({
         ...team,
         lives: Math.max(0, Math.min(2, team.lives)), // Ensure lives between 0 and 2
       }));
     }
     
     // Ensure match references use the latest team data
-    if (updatedTournament.matches && updatedTournament.teams) {
-      updatedTournament.matches = updatedTournament.matches.map(match => {
+    if (tournamentCopy.matches && tournamentCopy.teams) {
+      tournamentCopy.matches = tournamentCopy.matches.map(match => {
         // Find latest team references
-        const currentTeamA = updatedTournament.teams.find(t => t.id === match.teamA.id);
-        const currentTeamB = updatedTournament.teams.find(t => t.id === match.teamB.id);
+        const currentTeamA = tournamentCopy.teams.find(t => t.id === match.teamA.id);
+        const currentTeamB = tournamentCopy.teams.find(t => t.id === match.teamB.id);
         const currentWinner = match.winner ? 
-          updatedTournament.teams.find(t => t.id === match.winner?.id) : undefined;
+          tournamentCopy.teams.find(t => t.id === match.winner?.id) : undefined;
           
         return {
           ...match,
@@ -39,10 +42,10 @@ const Admin = () => {
       });
     }
     
-    setTournament(updatedTournament);
+    setTournament(tournamentCopy);
     
     // Here we could add logic to persist changes or sync with backend
-    console.log("Tournament updated and synced with scoreboard", updatedTournament);
+    console.log("Tournament updated and synced with scoreboard", tournamentCopy);
     
     // In a real-world application, you could use WebSockets or server-sent events
     // to push updates to the scoreboard in real-time

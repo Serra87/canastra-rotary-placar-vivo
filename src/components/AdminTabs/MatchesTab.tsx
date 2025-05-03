@@ -76,10 +76,20 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
   
   // Create a new round with matches
   const createNewRound = () => {
-    const currentRound = tournament.maxRound;
-    const nextRound = currentRound + 1;
+    // Calculate the actual next round number by getting the max existing round number + 1
+    let maxExistingRoundNumber = 0;
     
-    // UPDATED: Get teams that have at least 1 life OR have been re-entered, but NOT eliminated
+    // Go through all matches and find the highest round number
+    tournament.matches.forEach(match => {
+      if (match.round) {
+        const roundNum = parseInt(match.round.replace(/\D/g, '') || "0");
+        maxExistingRoundNumber = Math.max(maxExistingRoundNumber, roundNum);
+      }
+    });
+    
+    const nextRoundNumber = maxExistingRoundNumber + 1;
+    
+    // Get teams that have at least 1 life OR have been re-entered, but NOT eliminated
     const teamsAdvancing = teams.filter(team => 
       (team.lives > 0 || team.reEntered) && !team.eliminated
     );
@@ -101,12 +111,12 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     for (let i = 0; i < teamsAdvancing.length; i += 2) {
       if (i + 1 < teamsAdvancing.length) {
         newMatches.push({
-          id: `match-${nextRound}-${i/2+1}`,
+          id: `match-${nextRoundNumber}-${i/2+1}`,
           teamA: teamsAdvancing[i],
           teamB: teamsAdvancing[i+1],
           scoreA: 0,
           scoreB: 0,
-          round: `RODADA ${nextRound}`,
+          round: `RODADA ${nextRoundNumber}`,
           completed: false,
           inProgress: false,
           tableNumber: undefined
@@ -114,7 +124,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       } else {
         // Odd number of teams, this team gets a bye
         newMatches.push({
-          id: `match-${nextRound}-${i/2+1}`,
+          id: `match-${nextRoundNumber}-${i/2+1}`,
           teamA: teamsAdvancing[i],
           teamB: {
             id: 'bye',
@@ -128,7 +138,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
           },
           scoreA: 0,
           scoreB: 0,
-          round: `RODADA ${nextRound}`,
+          round: `RODADA ${nextRoundNumber}`,
           completed: false,
           inProgress: false,
           tableNumber: undefined
@@ -143,14 +153,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     // Update tournament with new round and matches
     onUpdateTournament({
       ...tournament,
-      maxRound: nextRound,
-      currentRound: `RODADA ${nextRound}`,
+      maxRound: nextRoundNumber,
+      currentRound: `RODADA ${nextRoundNumber}`,
       matches: updatedMatches
     });
 
     toast({
       title: "Nova rodada criada",
-      description: `RODADA ${nextRound} foi criada com ${newMatches.length} partidas`,
+      description: `RODADA ${nextRoundNumber} foi criada com ${newMatches.length} partidas`,
       variant: "default"
     });
   };
