@@ -9,7 +9,6 @@ export interface Team {
   id: string;
   name: string;
   players: [string, string]; // Canasta is played in pairs
-  sponsor: Sponsor;
   eliminated: boolean;
   rank?: number;
   totalPoints: number;
@@ -42,7 +41,6 @@ export interface Tournament {
   currentRound: string; // Changed from currentPhase to currentRound
   maxRound: number; // Track the highest round number
   rules?: {
-    initialLives: number;
     reentryAllowedUntilRound: number;
     pointsToWin: number;
   };

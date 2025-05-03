@@ -17,7 +17,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournamen
   const [currentTournament, setCurrentTournament] = useState<Tournament>({
     ...tournament,
     rules: tournament.rules || {
-      initialLives: 2,
       reentryAllowedUntilRound: 5,
       pointsToWin: 3000
     }
@@ -72,24 +71,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ tournament, onUpdateTournamen
             <h3 className="font-semibold mb-4">Regras do Torneio</h3>
             
             <div className="grid gap-4">
-              <div>
-                <Label htmlFor="initial-lives">Vidas Iniciais</Label>
-                <Input
-                  id="initial-lives"
-                  type="number"
-                  min={1}
-                  max={3}
-                  value={currentTournament.rules?.initialLives || 2}
-                  onChange={(e) => setCurrentTournament({
-                    ...currentTournament, 
-                    rules: {
-                      ...currentTournament.rules!,
-                      initialLives: parseInt(e.target.value) || 2
-                    }
-                  })}
-                />
-              </div>
-              
               <div>
                 <Label htmlFor="reentry-limit">Limite de Rodada para Reinscrição</Label>
                 <Input

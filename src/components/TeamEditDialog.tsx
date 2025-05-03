@@ -121,21 +121,6 @@ const TeamEditDialog = ({ team, open, onClose, onSave, currentRound, maxReentryR
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="sponsor" className="text-right">
-              Patrocinador
-            </Label>
-            <Input
-              id="sponsor"
-              value={editedTeam.sponsor.name}
-              onChange={(e) => setEditedTeam({
-                ...editedTeam,
-                sponsor: { ...editedTeam.sponsor, name: e.target.value }
-              })}
-              className="col-span-3"
-            />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Vidas</Label>
             <div className="col-span-3 flex gap-2 items-center">
               <Button

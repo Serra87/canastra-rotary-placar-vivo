@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,7 +100,6 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
                 id: 'removed', 
                 name: 'Time removido', 
                 players: ['', ''] as [string, string], 
-                sponsor: { id: '', name: '' }, 
                 eliminated: true, 
                 totalPoints: 0, 
                 lives: 0, 
@@ -115,7 +115,6 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
                 id: 'removed', 
                 name: 'Time removido', 
                 players: ['', ''] as [string, string], 
-                sponsor: { id: '', name: '' }, 
                 eliminated: true, 
                 totalPoints: 0, 
                 lives: 0, 
@@ -164,7 +163,6 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
               <TableRow>
                 <TableHead>Time</TableHead>
                 <TableHead>Jogadores</TableHead>
-                <TableHead>Empresa</TableHead>
                 <TableHead className="text-center">Vidas</TableHead>
                 <TableHead className="text-center">Pontos</TableHead>
                 <TableHead className="text-center">Status</TableHead>
@@ -174,7 +172,7 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
             <TableBody>
               {teams.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Nenhum time cadastrado. Clique em "Adicionar Time" para começar.
                   </TableCell>
                 </TableRow>
@@ -190,7 +188,6 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
                       </div>
                     </TableCell>
                     <TableCell>{team.players.join(' / ')}</TableCell>
-                    <TableCell>{team.sponsor.name}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center">
                         {Array.from({ length: team.lives }).map((_, i) => (

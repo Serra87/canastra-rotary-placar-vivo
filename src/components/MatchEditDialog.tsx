@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Match, Team } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -46,7 +45,6 @@ const MatchEditDialog = ({ match, open, onClose, onSave, availableTeams }: Match
       id: 'undefined',
       name: 'Time a definir',
       players: ['', ''],
-      sponsor: { id: '', name: '' },
       eliminated: false,
       totalPoints: 0,
       lives: 0,

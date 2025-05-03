@@ -17,7 +17,6 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
     currentRound: tournament.currentRound || "RODADA 1",
     maxRound: tournament.maxRound || 1,
     rules: tournament.rules || {
-      initialLives: 2,
       reentryAllowedUntilRound: 5,
       pointsToWin: 3000
     }

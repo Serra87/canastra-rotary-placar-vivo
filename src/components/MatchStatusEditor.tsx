@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Heart, Plus, Minus } from "lucide-react";
 
 interface MatchStatusEditorProps {
   match: Match;
@@ -34,6 +35,10 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
   const [scoreB, setScoreB] = useState<number>(match.scoreB);
   const [winner, setWinner] = useState<string | undefined>(match.winner?.id);
   const [showResultDialog, setShowResultDialog] = useState(false);
+  
+  // Add states for team lives
+  const [teamALives, setTeamALives] = useState<number>(match.teamA.lives);
+  const [teamBLives, setTeamBLives] = useState<number>(match.teamB.lives);
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
@@ -66,6 +71,21 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     }
   };
 
+  // Helper function to update team lives
+  const handleUpdateTeamLives = (team: 'A' | 'B', increment: boolean) => {
+    if (team === 'A') {
+      const newLives = increment 
+        ? Math.min((match.teamA.reEntered ? 1 : 2), teamALives + 1) 
+        : Math.max(0, teamALives - 1);
+      setTeamALives(newLives);
+    } else {
+      const newLives = increment 
+        ? Math.min((match.teamB.reEntered ? 1 : 2), teamBLives + 1) 
+        : Math.max(0, teamBLives - 1);
+      setTeamBLives(newLives);
+    }
+  };
+
   const handleConfirmResult = () => {
     if (!winner) {
       toast({ 
@@ -79,23 +99,26 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     const losingTeam = winner === match.teamA.id ? match.teamB : match.teamA;
     let updatedTeams = [...teams];
 
-    // Process the loser - deduct one life and check elimination status
-    if (losingTeam && losingTeam.id) {
-      updatedTeams = updatedTeams.map((t) => {
-        if (t.id === losingTeam.id) {
-          const newLives = t.lives - 1;
-          // A team is eliminated if it has 0 lives AND hasn't been re-entered
-          const eliminated = newLives <= 0 && !t.reEntered;
-          
-          return {
-            ...t,
-            lives: newLives < 0 ? 0 : newLives,
-            eliminated
-          };
-        }
-        return t;
-      });
-    }
+    // Update both teams with manually adjusted lives
+    updatedTeams = updatedTeams.map((t) => {
+      if (t.id === match.teamA.id) {
+        const eliminated = teamALives <= 0 && !match.teamA.reEntered;
+        return {
+          ...t,
+          lives: teamALives,
+          eliminated
+        };
+      }
+      if (t.id === match.teamB.id) {
+        const eliminated = teamBLives <= 0 && !match.teamB.reEntered;
+        return {
+          ...t,
+          lives: teamBLives,
+          eliminated
+        };
+      }
+      return t;
+    });
 
     // Update match
     const updatedMatch: Match = {
@@ -117,16 +140,16 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
   };
 
   // Helper function to render hearts for teams
-  const renderHearts = (team: Team) => (
+  const renderHearts = (team: Team, lives: number) => (
     <div className="flex items-center mt-1">
-      {Array.from({ length: team.lives }).map((_, i) => (
-        <span key={i} className="text-red-500 mr-0.5">❤️</span>
+      {Array.from({ length: lives }).map((_, i) => (
+        <Heart key={i} size={16} className="text-red-500 fill-red-500 mr-0.5" />
       ))}
-      {Array.from({ length: (team.reEntered ? 1 : 2) - team.lives }).map((_, i) => (
-        <span key={`empty-${i}`} className="text-gray-300 mr-0.5">♡</span>
+      {Array.from({ length: (team.reEntered ? 1 : 2) - lives }).map((_, i) => (
+        <Heart key={`empty-${i}`} size={16} className="text-gray-300 mr-0.5" />
       ))}
       <span className="ml-2 text-xs">
-        {team.eliminated ? "Eliminado" : team.reEntered ? "Reinscrito" : "Ativo"}
+        {lives <= 0 ? "Eliminado" : team.reEntered ? "Reinscrito" : "Ativo"}
       </span>
     </div>
   );
@@ -150,29 +173,77 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
           <DialogHeader>
             <DialogTitle>Resultado da Partida</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <div>
+          <div className="space-y-6">
+            <div className="border-b pb-3">
               <Label>{match.teamA.name}</Label>
-              <Input
-                type="number"
-                value={scoreA}
-                onChange={(e) => setScoreA(Number(e.target.value))}
-              />
-              {renderHearts(match.teamA)}
+              <div className="mt-2 flex items-center space-x-2">
+                <Input
+                  type="number"
+                  value={scoreA}
+                  onChange={(e) => setScoreA(Number(e.target.value))}
+                  className="w-24"
+                />
+                <div className="flex items-center space-x-1">
+                  <Label className="text-sm">Vidas:</Label>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleUpdateTeamLives('A', false)}
+                  >
+                    <Minus size={14} />
+                  </Button>
+                  <span className="w-8 text-center">{teamALives}</span>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleUpdateTeamLives('A', true)}
+                  >
+                    <Plus size={14} />
+                  </Button>
+                </div>
+              </div>
+              {renderHearts(match.teamA, teamALives)}
             </div>
-            <div>
+            
+            <div className="border-b pb-3">
               <Label>{match.teamB.name}</Label>
-              <Input
-                type="number"
-                value={scoreB}
-                onChange={(e) => setScoreB(Number(e.target.value))}
-              />
-              {renderHearts(match.teamB)}
+              <div className="mt-2 flex items-center space-x-2">
+                <Input
+                  type="number"
+                  value={scoreB}
+                  onChange={(e) => setScoreB(Number(e.target.value))}
+                  className="w-24"
+                />
+                <div className="flex items-center space-x-1">
+                  <Label className="text-sm">Vidas:</Label>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleUpdateTeamLives('B', false)}
+                  >
+                    <Minus size={14} />
+                  </Button>
+                  <span className="w-8 text-center">{teamBLives}</span>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleUpdateTeamLives('B', true)}
+                  >
+                    <Plus size={14} />
+                  </Button>
+                </div>
+              </div>
+              {renderHearts(match.teamB, teamBLives)}
             </div>
+            
             <div>
               <Label>Vencedor</Label>
               <Select value={winner} onValueChange={setWinner}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Escolha o vencedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -181,6 +252,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="flex justify-end pt-4">
               <Button onClick={handleConfirmResult}>Confirmar Resultado</Button>
             </div>

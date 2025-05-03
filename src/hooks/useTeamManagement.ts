@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Team, Match } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -26,13 +25,11 @@ export const useTeamManagement = ({
   // Handle adding a new team
   const handleAddTeam = () => {
     const newTeamId = `team-${Date.now()}`;
-    const newSponsorId = `sponsor-${Date.now()}`;
     
     const newTeam: Team = {
       id: newTeamId,
       name: `Nova Dupla ${teams.length + 1}`,
       players: ["Jogador 1", "Jogador 2"] as [string, string],
-      sponsor: { id: newSponsorId, name: "Patrocinador" },
       eliminated: false,
       totalPoints: 0,
       lives: 2,

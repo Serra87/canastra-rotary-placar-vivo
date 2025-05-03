@@ -1,4 +1,3 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
@@ -46,9 +45,6 @@ const Admin = () => {
     
     // Here we could add logic to persist changes or sync with backend
     console.log("Tournament updated and synced with scoreboard", tournamentCopy);
-    
-    // In a real-world application, you could use WebSockets or server-sent events
-    // to push updates to the scoreboard in real-time
   };
 
   return (
