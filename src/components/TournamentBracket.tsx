@@ -93,7 +93,6 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                               )}
                               <TeamCard 
                                 team={match.teamA} 
-                                showSponsor={false} 
                                 compact={true} 
                               />
                             </div>
@@ -137,7 +136,6 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                               )}
                               <TeamCard 
                                 team={match.teamB} 
-                                showSponsor={false} 
                                 compact={true} 
                               />
                             </div>
