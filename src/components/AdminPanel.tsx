@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tournament } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MatchesTab from "@/components/AdminTabs/MatchesTab";
@@ -21,6 +21,19 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
       pointsToWin: 3000
     }
   });
+  
+  // Update local state when parent tournament changes (including reset)
+  useEffect(() => {
+    setCurrentTournament({
+      ...tournament,
+      currentRound: tournament.currentRound || "RODADA 1",
+      maxRound: tournament.maxRound || 1,
+      rules: tournament.rules || {
+        reentryAllowedUntilRound: 5,
+        pointsToWin: 3000
+      }
+    });
+  }, [tournament]);
   
   // Function to update tournament data (used by child components)
   const handleUpdateTournament = (updatedTournament: Tournament) => {

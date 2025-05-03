@@ -1,7 +1,10 @@
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Tournament } from "@/lib/types";
 import { mockTournament, getRankedTeams } from "@/lib/mockData";
+
+// Constante para o storage key
+const TOURNAMENT_STORAGE_KEY = "rotary-tournament";
 
 // Define o tipo para o contexto
 interface TournamentContextType {
@@ -14,18 +17,54 @@ interface TournamentContextType {
 // Criar o contexto
 const TournamentContext = createContext<TournamentContextType | undefined>(undefined);
 
+// Função auxiliar para garantir que a data seja um objeto Date
+const ensureDateObject = (dateValue: string | Date): Date => {
+  if (dateValue instanceof Date) return dateValue;
+  try {
+    return new Date(dateValue);
+  } catch (error) {
+    console.error("Erro ao converter data:", error);
+    return new Date();
+  }
+};
+
+// Carregar torneio do localStorage ou usar o mock
+const loadSavedTournament = (): Tournament => {
+  try {
+    const savedTournament = localStorage.getItem(TOURNAMENT_STORAGE_KEY);
+    if (savedTournament) {
+      const parsed = JSON.parse(savedTournament);
+      // Garantir que a data seja um objeto Date
+      return {
+        ...parsed,
+        date: ensureDateObject(parsed.date)
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao carregar torneio do localStorage:", error);
+  }
+  
+  // Fallback para o mock tournament
+  return {
+    ...mockTournament,
+    date: ensureDateObject(mockTournament.date)
+  };
+};
+
 // Provedor do contexto
 export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tournament, setTournament] = useState<Tournament>(() => {
-    // Assegura que a data é um objeto Date válido durante a inicialização
-    return {
-      ...mockTournament,
-      date: mockTournament.date instanceof Date ? 
-        mockTournament.date : 
-        new Date(mockTournament.date)
-    };
-  });
+  // Inicializar com dados do localStorage ou mock
+  const [tournament, setTournament] = useState<Tournament>(loadSavedTournament);
   const [rankedTeams, setRankedTeams] = useState(getRankedTeams(tournament));
+
+  // Salvar no localStorage quando o torneio for atualizado
+  useEffect(() => {
+    try {
+      localStorage.setItem(TOURNAMENT_STORAGE_KEY, JSON.stringify(tournament));
+    } catch (error) {
+      console.error("Erro ao salvar torneio no localStorage:", error);
+    }
+  }, [tournament]);
 
   // Função para atualizar o torneio
   const updateTournament = (updatedTournament: Tournament) => {
@@ -33,9 +72,7 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     const tournamentCopy = JSON.parse(JSON.stringify(updatedTournament));
     
     // Assegura que a data é um objeto Date válido após a deserialização
-    tournamentCopy.date = tournamentCopy.date instanceof Date ? 
-      tournamentCopy.date : 
-      new Date(tournamentCopy.date);
+    tournamentCopy.date = ensureDateObject(tournamentCopy.date);
     
     // Garantir que as equipes tenham limites de vidas corretos
     if (tournamentCopy.teams) {
@@ -113,8 +150,9 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     console.log("Torneio atualizado e sincronizado com o placar", tournamentCopy);
   };
 
-  // Nova função para resetar o torneio
+  // Função para resetar o torneio
   const resetTournament = () => {
+    // Mantém configurações básicas do torneio, mas limpa times e partidas
     const resetTournamentData = {
       ...tournament,
       teams: [],
@@ -125,6 +163,10 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
 
     setTournament(resetTournamentData);
     setRankedTeams([]);
+    
+    // Força a atualização no localStorage também
+    localStorage.setItem(TOURNAMENT_STORAGE_KEY, JSON.stringify(resetTournamentData));
+    
     console.log("Torneio resetado com sucesso", resetTournamentData);
   };
 
