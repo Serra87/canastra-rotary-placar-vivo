@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,7 +79,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     const currentRound = tournament.maxRound;
     const nextRound = currentRound + 1;
     
-    // Get teams that have at least 1 life OR have been re-entered, but NOT eliminated
+    // UPDATED: Get teams that have at least 1 life OR have been re-entered, but NOT eliminated
     const teamsAdvancing = teams.filter(team => 
       (team.lives > 0 || team.reEntered) && !team.eliminated
     );
@@ -105,7 +106,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
           teamB: teamsAdvancing[i+1],
           scoreA: 0,
           scoreB: 0,
-          round: `${nextRound}`,
+          round: `RODADA ${nextRound}`,
           completed: false,
           inProgress: false,
           tableNumber: undefined
@@ -127,7 +128,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
           },
           scoreA: 0,
           scoreB: 0,
-          round: `${nextRound}`,
+          round: `RODADA ${nextRound}`,
           completed: false,
           inProgress: false,
           tableNumber: undefined
@@ -151,6 +152,60 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       title: "Nova rodada criada",
       description: `RODADA ${nextRound} foi criada com ${newMatches.length} partidas`,
       variant: "default"
+    });
+  };
+
+  // DELETE ROUND FUNCTION
+  const deleteRound = (round: string) => {
+    if (!window.confirm(`Tem certeza que deseja deletar todas as partidas da ${round}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    const matchesToRemove = matchesByRound[round] || [];
+
+    // Reverter efeitos das partidas finalizadas
+    const updatedTeams = [...teams];
+    matchesToRemove.forEach((match) => {
+      if (match.completed && match.winner) {
+        // Reverter pontos do vencedor
+        const winnerIndex = updatedTeams.findIndex(t => t.id === match.winner?.id);
+        if (winnerIndex !== -1) {
+          updatedTeams[winnerIndex].totalPoints -= 100;
+          if (updatedTeams[winnerIndex].totalPoints < 0) {
+            updatedTeams[winnerIndex].totalPoints = 0;
+          }
+        }
+
+        // Restaurar vida ao perdedor
+        const loser = match.winner.id === match.teamA.id ? match.teamB : match.teamA;
+        const loserIndex = updatedTeams.findIndex(t => t.id === loser.id);
+        if (loserIndex !== -1) {
+          updatedTeams[loserIndex].lives += 1;
+          if (updatedTeams[loserIndex].lives > 2) {
+            updatedTeams[loserIndex].lives = 2; // Guarantee max 2 lives
+          }
+          updatedTeams[loserIndex].eliminated = false;
+        }
+      }
+    });
+
+    // Remover as partidas da rodada
+    const updatedMatches = matches.filter(m => m.round !== round);
+
+    setMatches(updatedMatches);
+    setTeams(updatedTeams);
+
+    toast({
+      title: `Rodada deletada`,
+      description: `${matchesToRemove.length} partidas removidas da ${round}`,
+      variant: "destructive"
+    });
+
+    // Syncronize with tournament state
+    onUpdateTournament({
+      ...tournament,
+      matches: updatedMatches,
+      teams: updatedTeams,
     });
   };
 
@@ -246,6 +301,18 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
             
             {rounds.map(round => (
               <TabsContent key={round} value={round}>
+                {/* Round header with delete button */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">{round}</h3>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteRound(round)}
+                  >
+                    Deletar Rodada
+                  </Button>
+                </div>
+                
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -275,14 +342,17 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                             value={match.tableNumber || ''}
                             onChange={(e) => {
                               const tableNumber = parseInt(e.target.value) || undefined;
-                              setMatches(
-                                matches.map(m => {
-                                  if (m.id === match.id) {
-                                    return { ...m, tableNumber };
-                                  }
-                                  return m;
-                                })
-                              );
+                              const updatedMatches = matches.map(m => {
+                                if (m.id === match.id) {
+                                  return { ...m, tableNumber };
+                                }
+                                return m;
+                              });
+                              setMatches(updatedMatches);
+                              onUpdateTournament({
+                                ...tournament,
+                                matches: updatedMatches
+                              });
                             }}
                             placeholder="Nº"
                           />
@@ -310,6 +380,9 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                                   <span className="ml-2 flex">
                                     {Array.from({ length: match.teamA.lives }).map((_, i) => (
                                       <span key={i} className="text-red-500 mr-1">❤️</span>
+                                    ))}
+                                    {Array.from({ length: (match.teamA.reEntered ? 1 : 2) - match.teamA.lives }).map((_, i) => (
+                                      <span key={`empty-${i}`} className="text-gray-300 mr-1">♡</span>
                                     ))}
                                   </span>
                                 </div>
@@ -340,6 +413,9 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                                     {Array.from({ length: match.teamB.lives }).map((_, i) => (
                                       <span key={i} className="text-red-500 mr-1">❤️</span>
                                     ))}
+                                    {Array.from({ length: (match.teamB.reEntered ? 1 : 2) - match.teamB.lives }).map((_, i) => (
+                                      <span key={`empty-${i}`} className="text-gray-300 mr-1">♡</span>
+                                    ))}
                                   </span>
                                 </div>
                               )}
@@ -353,7 +429,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                               min={0}
                               className="w-20 text-center"
                               value={match.scoreA}
-                              onChange={(e) => handleUpdateScore(match.id, 'A', parseInt(e.target.value) || 0)}
+                              onChange={(e) => {
+                                handleUpdateScore(match.id, 'A', parseInt(e.target.value) || 0);
+                                // Syncronize with tournament
+                                onUpdateTournament({
+                                  ...tournament,
+                                  matches: matches.map(m => m.id === match.id ? {...m, scoreA: parseInt(e.target.value) || 0} : m)
+                                });
+                              }}
                               disabled={!match.inProgress || match.completed || !match.teamA.id}
                             />
                             <span className="text-muted-foreground">x</span>
@@ -362,7 +445,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                               min={0}
                               className="w-20 text-center"
                               value={match.scoreB}
-                              onChange={(e) => handleUpdateScore(match.id, 'B', parseInt(e.target.value) || 0)}
+                              onChange={(e) => {
+                                handleUpdateScore(match.id, 'B', parseInt(e.target.value) || 0);
+                                // Syncronize with tournament
+                                onUpdateTournament({
+                                  ...tournament,
+                                  matches: matches.map(m => m.id === match.id ? {...m, scoreB: parseInt(e.target.value) || 0} : m)
+                                });
+                              }}
                               disabled={!match.inProgress || match.completed || !match.teamB.id}
                             />
                           </div>

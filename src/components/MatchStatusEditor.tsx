@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface MatchStatusEditorProps {
   match: Match;
@@ -93,11 +93,11 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
       updatedTeams = updatedTeams.map((t) => {
         if (t.id === losingTeam.id) {
           const newLives = t.lives - 1;
-          const eliminated = newLives <= 0;
+          const eliminated = newLives <= 0 && !t.reEntered;
           
           return {
             ...t,
-            lives: newLives,
+            lives: newLives < 0 ? 0 : newLives,
             eliminated
           };
         }
@@ -119,7 +119,7 @@ export default function MatchStatusEditor({ match, teams, onSave }: MatchStatusE
     setShowResultDialog(false);
     toast({ 
       title: "Resultado salvo", 
-      description: "Partida finalizada e placar atualizado",
+      description: "Partida finalizada e sincronizada com o placar",
       variant: "default"
     });
   };

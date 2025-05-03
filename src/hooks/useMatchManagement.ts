@@ -24,8 +24,8 @@ export const useMatchManagement = ({
   matches.forEach(match => {
     if (!match.round) return; // Skip matches without a round
     
-    const roundNumber = parseInt(match.round.replace(/\D/g, '') || "1");
-    const roundKey = `RODADA ${roundNumber}`;
+    // Ensure all rounds are formatted consistently
+    const roundKey = match.round.startsWith("RODADA") ? match.round : `RODADA ${match.round}`;
     
     if (!matchesByRound[roundKey]) {
       matchesByRound[roundKey] = [];
@@ -42,6 +42,11 @@ export const useMatchManagement = ({
 
   // Handle adding a manual match
   const handleAddManualMatch = (newMatch: Match) => {
+    // Ensure round format is consistent
+    if (newMatch.round && !newMatch.round.startsWith("RODADA")) {
+      newMatch.round = `RODADA ${newMatch.round}`;
+    }
+    
     const updatedMatches = [...matches, newMatch];
     setMatches(updatedMatches);
     
@@ -55,6 +60,8 @@ export const useMatchManagement = ({
       description: `${newMatch.teamA.name} vs ${newMatch.teamB.name} adicionada à rodada ${currentRoundNumber}`,
       variant: "default"
     });
+    
+    return newMatch;
   };
 
   // Update match score
@@ -126,6 +133,11 @@ export const useMatchManagement = ({
     
     setMatches(updatedMatches);
     
+    // Sync with parent
+    if (onUpdateMatches) {
+      onUpdateMatches(updatedMatches);
+    }
+    
     toast({
       title: "Partida finalizada",
       description: `Vencedor: ${winner ? winner.name : 'Empate - Defina um vencedor!'}`,
@@ -154,6 +166,11 @@ export const useMatchManagement = ({
     };
     
     setMatches(updatedMatches);
+    
+    // Sync with parent
+    if (onUpdateMatches) {
+      onUpdateMatches(updatedMatches);
+    }
     
     toast({
       title: "Vencedor definido",

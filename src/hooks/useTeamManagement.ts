@@ -45,6 +45,16 @@ export const useTeamManagement = ({
 
   // Handle team save
   const handleSaveTeam = (updatedTeam: Team) => {
+    // Ensure team never has more than 2 lives
+    if (updatedTeam.lives > 2) {
+      updatedTeam.lives = 2;
+    }
+    
+    // Ensure lives are never negative
+    if (updatedTeam.lives < 0) {
+      updatedTeam.lives = 0;
+    }
+    
     const updatedTeams = teams.map(t => t.id === updatedTeam.id ? updatedTeam : t);
     setTeams(updatedTeams);
     
@@ -103,13 +113,15 @@ export const useTeamManagement = ({
     
     const updatedTeams = teams.map(team => {
       if (team.id === loser.id) {
+        // Calculate new lives and eliminated status
         const newLives = team.lives - 1;
-        const eliminated = newLives <= 0;
+        // A team is eliminated if it has 0 lives and hasn't been reentered
+        const eliminated = newLives <= 0 && !team.reEntered;
         
         // Update the loser
         const updatedTeam = {
           ...team,
-          lives: newLives,
+          lives: newLives < 0 ? 0 : newLives,
           eliminated
         };
         
@@ -145,7 +157,7 @@ export const useTeamManagement = ({
   
   // Handle team deletion
   const confirmDeleteTeam = (teamToDelete: Team) => {
-    if (!teamToDelete) return;
+    if (!teamToDelete) return teams;
     
     // Remove team from teams array
     const updatedTeams = teams.filter(t => t.id !== teamToDelete.id);

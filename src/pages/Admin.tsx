@@ -1,3 +1,4 @@
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
@@ -12,8 +13,18 @@ const Admin = () => {
   
   // Function to update tournament data (could be used by child components)
   const updateTournament = (updatedTournament: Tournament) => {
+    // Ensure teams have correct lives limits
+    if (updatedTournament.teams) {
+      updatedTournament.teams = updatedTournament.teams.map(team => ({
+        ...team,
+        lives: Math.max(0, Math.min(2, team.lives)), // Ensure lives between 0 and 2
+      }));
+    }
+    
     setTournament(updatedTournament);
+    
     // Here we could add logic to persist changes or sync with backend
+    console.log("Tournament updated and synced with scoreboard", updatedTournament);
   };
 
   return (
