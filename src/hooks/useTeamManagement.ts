@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Team } from "@/lib/types";
+import { Team, Match } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseTeamManagementProps {
@@ -8,13 +7,17 @@ interface UseTeamManagementProps {
   onUpdateTeams?: (teams: Team[]) => void;
   maxReentryRound: number;
   currentRound: number;
+  matches?: Match[];
+  onUpdateMatches?: (matches: Match[]) => void;
 }
 
 export const useTeamManagement = ({
   initialTeams,
   onUpdateTeams,
   maxReentryRound,
-  currentRound
+  currentRound,
+  matches,
+  onUpdateMatches
 }: UseTeamManagementProps) => {
   const [teams, setTeams] = useState<Team[]>(initialTeams);
   const { toast } = useToast();
@@ -43,7 +46,7 @@ export const useTeamManagement = ({
     return newTeam;
   };
 
-  // Handle team save
+  // Handle team save with match updates
   const handleSaveTeam = (updatedTeam: Team) => {
     // Ensure team never has more than 2 lives
     if (updatedTeam.lives > 2) {
@@ -57,6 +60,47 @@ export const useTeamManagement = ({
     
     const updatedTeams = teams.map(t => t.id === updatedTeam.id ? updatedTeam : t);
     setTeams(updatedTeams);
+    
+    // Update matches if team name or other details changed
+    if (matches && onUpdateMatches) {
+      const updatedMatches = matches.map(match => {
+        let matchUpdated = false;
+        
+        // Update team A reference in matches
+        let updatedTeamA = match.teamA;
+        if (match.teamA.id === updatedTeam.id) {
+          updatedTeamA = updatedTeam;
+          matchUpdated = true;
+        }
+        
+        // Update team B reference in matches
+        let updatedTeamB = match.teamB;
+        if (match.teamB.id === updatedTeam.id) {
+          updatedTeamB = updatedTeam;
+          matchUpdated = true;
+        }
+        
+        // Update winner reference in matches
+        let updatedWinner = match.winner;
+        if (match.winner && match.winner.id === updatedTeam.id) {
+          updatedWinner = updatedTeam;
+          matchUpdated = true;
+        }
+        
+        // If nothing changed, return the original match
+        if (!matchUpdated) return match;
+        
+        // Otherwise, return updated match with fresh team references
+        return {
+          ...match,
+          teamA: updatedTeamA,
+          teamB: updatedTeamB,
+          winner: updatedWinner
+        };
+      });
+      
+      onUpdateMatches(updatedMatches);
+    }
     
     if (onUpdateTeams) {
       onUpdateTeams(updatedTeams);

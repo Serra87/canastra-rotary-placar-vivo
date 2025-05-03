@@ -23,7 +23,7 @@ export const AdminPanel = ({ tournament, onUpdateTournament }: AdminPanelProps) 
     }
   });
   
-  // Function to update tournament data (could be used by child components)
+  // Function to update tournament data (used by child components)
   const handleUpdateTournament = (updatedTournament: Tournament) => {
     setCurrentTournament(updatedTournament);
     

@@ -1,3 +1,4 @@
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
@@ -18,6 +19,24 @@ const Admin = () => {
         ...team,
         lives: Math.max(0, Math.min(2, team.lives)), // Ensure lives between 0 and 2
       }));
+    }
+    
+    // Ensure match references use the latest team data
+    if (updatedTournament.matches && updatedTournament.teams) {
+      updatedTournament.matches = updatedTournament.matches.map(match => {
+        // Find latest team references
+        const currentTeamA = updatedTournament.teams.find(t => t.id === match.teamA.id);
+        const currentTeamB = updatedTournament.teams.find(t => t.id === match.teamB.id);
+        const currentWinner = match.winner ? 
+          updatedTournament.teams.find(t => t.id === match.winner?.id) : undefined;
+          
+        return {
+          ...match,
+          teamA: currentTeamA || match.teamA,
+          teamB: currentTeamB || match.teamB,
+          winner: currentWinner
+        };
+      });
     }
     
     setTournament(updatedTournament);

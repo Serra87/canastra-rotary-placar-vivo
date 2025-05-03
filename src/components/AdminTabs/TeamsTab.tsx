@@ -27,7 +27,7 @@ interface TeamsTabProps {
 const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) => {
   const currentRoundNumber = parseInt(tournament.currentRound.replace(/\D/g, '') || "1");
   
-  // Custom hook for team management
+  // Custom hook for team management with matches passed
   const {
     teams,
     handleAddTeam,
@@ -43,7 +43,14 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
       });
     },
     maxReentryRound: tournament.rules?.reentryAllowedUntilRound || 5,
-    currentRound: currentRoundNumber
+    currentRound: currentRoundNumber,
+    matches: tournament.matches,
+    onUpdateMatches: (updatedMatches) => {
+      onUpdateTournament({
+        ...tournament,
+        matches: updatedMatches
+      });
+    }
   });
   
   // Team editing state
