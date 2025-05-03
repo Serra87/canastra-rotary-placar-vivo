@@ -1,8 +1,8 @@
 
-import { Tournament, Team, Match, Sponsor } from './types';
+import { Tournament, Team, Match } from './types';
 
 // Create empty sponsors array
-const sponsors: Sponsor[] = [];
+const sponsors = [];
 
 // Create empty teams array
 const teams: Team[] = [];

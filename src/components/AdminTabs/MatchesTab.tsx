@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -158,10 +159,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       const teamA = remainingWinners.shift()!;
       const teamB = remainingWinners.shift()!;
       
+      // Important: Use deep copies of the team objects to preserve the current state
+      const teamACopy = JSON.parse(JSON.stringify(teamA));
+      const teamBCopy = JSON.parse(JSON.stringify(teamB));
+      
       newMatches.push({
         id: `match-${nextRoundNumber}-${newMatches.length+1}`,
-        teamA,
-        teamB,
+        teamA: teamACopy,
+        teamB: teamBCopy,
         scoreA: 0,
         scoreB: 0,
         round: `RODADA ${nextRoundNumber}`,
@@ -176,10 +181,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       const teamA = remainingLosers.shift()!;
       const teamB = remainingLosers.shift()!;
       
+      // Important: Use deep copies of the team objects to preserve the current state
+      const teamACopy = JSON.parse(JSON.stringify(teamA));
+      const teamBCopy = JSON.parse(JSON.stringify(teamB));
+      
       newMatches.push({
         id: `match-${nextRoundNumber}-${newMatches.length+1}`,
-        teamA,
-        teamB,
+        teamA: teamACopy,
+        teamB: teamBCopy,
         scoreA: 0,
         scoreB: 0,
         round: `RODADA ${nextRoundNumber}`,
@@ -197,10 +206,14 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       const teamA = remainingTeams.shift()!;
       const teamB = remainingTeams.shift()!;
       
+      // Important: Use deep copies of the team objects to preserve the current state
+      const teamACopy = JSON.parse(JSON.stringify(teamA));
+      const teamBCopy = JSON.parse(JSON.stringify(teamB));
+      
       newMatches.push({
         id: `match-${nextRoundNumber}-${newMatches.length+1}`,
-        teamA,
-        teamB,
+        teamA: teamACopy,
+        teamB: teamBCopy,
         scoreA: 0,
         scoreB: 0,
         round: `RODADA ${nextRoundNumber}`,
@@ -213,10 +226,11 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     // If there's one team left, give it a bye
     if (remainingTeams.length === 1) {
       const teamA = remainingTeams[0];
+      const teamACopy = JSON.parse(JSON.stringify(teamA));
       
       newMatches.push({
         id: `match-${nextRoundNumber}-${newMatches.length+1}`,
-        teamA,
+        teamA: teamACopy,
         teamB: {
           id: 'bye',
           name: 'Bye',
@@ -391,7 +405,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
             
             {rounds.map(round => (
               <TabsContent key={round} value={round}>
-                {/* Round header with delete button */}
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">{round}</h3>
                   <Button
