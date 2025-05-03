@@ -1,22 +1,21 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Tournament } from "@/lib/types";
-import { mockTournament, getRankedTeams } from "@/lib/mockData";
 import { useSupabaseTournament } from "@/hooks/useSupabaseTournament";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "@/hooks/use-toast";
 import { useTournamentCache } from "@/hooks/useTournamentCache";
 import { useOptimisticUpdate } from "@/hooks/useOptimisticUpdate";
 import { useTournamentStats } from "@/hooks/useTournamentStats";
+import { generateUUID } from "@/integrations/supabase/client";
 
-// Constante para o storage key (mantida como fallback)
+// Constante para o storage key
 const TOURNAMENT_STORAGE_KEY = "rotary-tournament";
 
 // Define o tipo para o contexto
 interface TournamentContextType {
   tournament: Tournament;
   updateTournament: (updatedTournament: Tournament) => void;
-  rankedTeams: ReturnType<typeof getRankedTeams>;
+  rankedTeams: Tournament['teams'];
   resetTournament: () => void;
   loading: boolean;
   isUpdating: boolean;
@@ -38,29 +37,6 @@ const ensureDateObject = (dateValue: string | Date): Date => {
   }
 };
 
-// Carregar torneio do localStorage como fallback
-const loadSavedTournament = (): Tournament => {
-  try {
-    const savedTournament = localStorage.getItem(TOURNAMENT_STORAGE_KEY);
-    if (savedTournament) {
-      const parsed = JSON.parse(savedTournament);
-      // Garantir que a data seja um objeto Date
-      return {
-        ...parsed,
-        date: ensureDateObject(parsed.date)
-      };
-    }
-  } catch (error) {
-    console.error("Erro ao carregar torneio do localStorage:", error);
-  }
-  
-  // Fallback para o mock tournament
-  return {
-    ...mockTournament,
-    date: ensureDateObject(mockTournament.date)
-  };
-};
-
 // Provedor do contexto
 export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Hook do Supabase para gerenciamento do torneio
@@ -73,9 +49,24 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     resetTournament: resetSupabaseTournament
   } = useSupabaseTournament();
 
-  // Inicializar com dados do localStorage ou mock como fallback
-  const [tournament, setTournament] = useState<Tournament>(loadSavedTournament);
-  const [rankedTeams, setRankedTeams] = useState(getRankedTeams(tournament));
+  // Inicializar com um torneio vazio, será substituído pelos dados do Supabase
+  const defaultEmptyTournament: Tournament = {
+    id: generateUUID(),
+    name: "Carregando torneio...",
+    date: new Date(),
+    location: "...",
+    teams: [],
+    matches: [],
+    currentRound: "RODADA 1",
+    maxRound: 1,
+    rules: {
+      reentryAllowedUntilRound: 3,
+      pointsToWin: 3000
+    }
+  };
+  
+  const [tournament, setTournament] = useState<Tournament>(defaultEmptyTournament);
+  const [rankedTeams, setRankedTeams] = useState<Tournament['teams']>([]);
   const [error, setError] = useState<Error | null>(null);
   
   // Usar o hook de estatísticas
@@ -90,8 +81,10 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   const { isUpdating, update: optimisticUpdate } = useOptimisticUpdate<Tournament>({
     onUpdate: async (updatedTournament) => {
       if (updatedTournament.id) {
+        console.log("Atualizando torneio existente:", updatedTournament.id);
         return await updateSupabaseTournament(updatedTournament);
       } else {
+        console.log("Criando novo torneio");
         return await createTournament(updatedTournament);
       }
     },
@@ -106,15 +99,36 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
       });
     }
   });
+
+  // Helper para classificar equipes por pontos
+  const getRankedTeams = (tournamentData: Tournament) => {
+    const teamsCopy = [...tournamentData.teams];
+    
+    // Ordenar por pontos (decrescente) e, em caso de empate, por nome (crescente)
+    return teamsCopy.sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  };
   
   // Quando o torneio do Supabase é carregado, atualiza o state local
   useEffect(() => {
     if (supabaseTournament) {
+      console.log("Torneio carregado do Supabase:", supabaseTournament.id);
       setTournament(supabaseTournament);
       setRankedTeams(getRankedTeams(supabaseTournament));
+      // Limpar o localStorage para evitar conflitos
+      try {
+        localStorage.removeItem(TOURNAMENT_STORAGE_KEY);
+      } catch (error) {
+        console.error("Erro ao limpar localStorage:", error);
+      }
       clearCache(); // Limpar o cache após carregar dados reais do servidor
     } else if (!loading && cachedTournament) {
       // Se não há dados do Supabase e não está carregando, use o cache
+      console.log("Usando torneio do cache");
       setTournament(cachedTournament);
       setRankedTeams(getRankedTeams(cachedTournament));
     }
@@ -135,6 +149,8 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   // Função para atualizar o torneio
   const updateTournament = async (updatedTournament: Tournament) => {
     try {
+      console.log("Atualizando torneio:", updatedTournament.id);
+      
       // Criar uma cópia profunda para evitar problemas de referência
       const tournamentCopy = JSON.parse(JSON.stringify(updatedTournament));
       
@@ -215,19 +231,12 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
       // Atualiza o ranking de equipes
       const newRankedTeams = getRankedTeams(tournamentCopy);
       setRankedTeams(newRankedTeams);
-      
-      // Salva no localStorage como fallback
-      try {
-        localStorage.setItem(TOURNAMENT_STORAGE_KEY, JSON.stringify(tournamentCopy));
-      } catch (error) {
-        console.error("Erro ao salvar torneio no localStorage:", error);
-      }
 
       // Inicia a atualização otimista no servidor
       const originalTournament = tournament; // Preserva o estado original em caso de erro
       await optimisticUpdate(tournamentCopy, originalTournament);
       
-      console.log("Torneio atualizado e sincronizado com o banco de dados", tournamentCopy);
+      console.log("Torneio atualizado e sincronizado com o banco de dados");
     } catch (error) {
       console.error("Erro ao atualizar torneio:", error);
       setError(error instanceof Error ? error : new Error(String(error)));
@@ -242,30 +251,30 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   // Função para resetar o torneio
   const resetTournament = async () => {
     try {
+      console.log("Iniciando reset do torneio...");
+
       // Se houver um torneio no Supabase, reseta-o
       if (tournament.id) {
-        await resetSupabaseTournament(tournament.id);
+        console.log(`Resetando torneio no Supabase com ID: ${tournament.id}`);
+        const success = await resetSupabaseTournament(tournament.id);
+        
+        if (!success) {
+          throw new Error("Falha ao resetar torneio no Supabase");
+        }
+        
+        // Limpa o cache e o localStorage
+        clearCache();
+        try {
+          localStorage.removeItem(TOURNAMENT_STORAGE_KEY);
+        } catch (error) {
+          console.error("Erro ao limpar localStorage:", error);
+        }
       } else {
-        // Se não houver torneio no Supabase, limpa o estado local
-        const resetTournamentData = {
-          ...tournament,
-          teams: [],
-          matches: [],
-          currentRound: "RODADA 1",
-          maxRound: 1,
-        };
-
-        setTournament(resetTournamentData);
-        setRankedTeams([]);
-        
-        // Força a atualização no localStorage também
-        localStorage.setItem(TOURNAMENT_STORAGE_KEY, JSON.stringify(resetTournamentData));
-        
-        console.log("Torneio resetado com sucesso", resetTournamentData);
+        console.error("Tentativa de resetar torneio sem ID");
+        throw new Error("Torneio não possui ID válido");
       }
       
-      // Limpar cache
-      clearCache();
+      console.log("Torneio resetado com sucesso");
       
       // Mostra confirmação de sucesso
       toast({

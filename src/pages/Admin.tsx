@@ -4,7 +4,6 @@ import Footer from "@/components/Footer";
 import AdminPanel from "@/components/AdminPanel";
 import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
 import { Trash2, Loader2 } from "lucide-react";
 import {
   AlertDialog,
@@ -26,12 +25,8 @@ const Admin = () => {
   const { tournament, updateTournament, resetTournament, loading, isUpdating } = useTournament();
 
   const handleReset = () => {
+    console.log("Solicitação de reset do torneio iniciada");
     resetTournament();
-    toast({
-      title: "Torneio resetado com sucesso",
-      description: "Todos os times e rodadas foram removidos",
-      variant: "default"
-    });
     setIsResetDialogOpen(false);
   };
 

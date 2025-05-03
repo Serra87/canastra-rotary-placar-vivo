@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Tournament, Team, Match } from "@/lib/types";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, ensureValidUUID, generateUUID } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface SupabaseTournament {
@@ -55,8 +55,8 @@ export const tournamentToSupabase = (tournament: Tournament): Omit<SupabaseTourn
     name: tournament.name,
     date: tournament.date.toISOString(),
     location: tournament.location,
-    current_round: tournament.currentRound,
-    max_round: tournament.maxRound,
+    current_round: tournament.currentRound || "RODADA 1",
+    max_round: tournament.maxRound || 1,
     reentry_allowed_until_round: tournament.rules?.reentryAllowedUntilRound || 5,
     points_to_win: tournament.rules?.pointsToWin || 3000,
   };
@@ -181,6 +181,8 @@ export const useSupabaseTournament = () => {
       setLoading(true);
       setError(null);
 
+      console.log("Buscando torneio no Supabase...");
+
       // Fetch the most recently created tournament
       const { data: tournamentData, error: tournamentError } = await supabase
         .from('tournaments')
@@ -189,7 +191,9 @@ export const useSupabaseTournament = () => {
         .limit(1)
         .single();
 
-      if (tournamentError) {
+      if (tournamentError && tournamentError.code !== 'PGRST116') {
+        // PGRST116 significa "nenhuma linha encontrada", o que é esperado quando não há torneios
+        console.error("Erro ao buscar torneio:", tournamentError);
         setError(new Error(tournamentError.message));
         toast({
           title: "Erro ao carregar torneio",
@@ -200,10 +204,38 @@ export const useSupabaseTournament = () => {
         return;
       }
 
+      // Se não encontrou nenhum torneio, cria um novo
       if (!tournamentData) {
-        setLoading(false);
+        console.log("Nenhum torneio encontrado. Criando um novo torneio vazio...");
+        
+        // Criar um torneio vazio inicial
+        const defaultTournament: Tournament = {
+          id: generateUUID(),
+          name: "Novo Torneio",
+          date: new Date(),
+          location: "Local não definido",
+          teams: [],
+          matches: [],
+          currentRound: "RODADA 1",
+          maxRound: 1,
+          rules: {
+            reentryAllowedUntilRound: 3,
+            pointsToWin: 3000,
+          }
+        };
+        
+        // Tentar criar o torneio no Supabase
+        const created = await createTournament(defaultTournament);
+        if (created) {
+          console.log("Novo torneio criado com sucesso!");
+          // fetchTournament será chamado novamente após createTournament bem-sucedido
+        } else {
+          setLoading(false);
+        }
         return;
       }
+
+      console.log("Torneio encontrado:", tournamentData.id);
 
       // Fetch teams for this tournament
       const { data: teamsData, error: teamsError } = await supabase
@@ -213,6 +245,7 @@ export const useSupabaseTournament = () => {
         .order('name', { ascending: true });
 
       if (teamsError) {
+        console.error("Erro ao buscar times:", teamsError);
         setError(new Error(teamsError.message));
         toast({
           title: "Erro ao carregar times",
@@ -223,13 +256,15 @@ export const useSupabaseTournament = () => {
         return;
       }
 
+      console.log(`${teamsData?.length || 0} times encontrados`);
+
       // Create teams map to use when building matches
       const teams: Record<string, Team> = {};
-      const localTeams: Team[] = teamsData.map(team => {
+      const localTeams: Team[] = teamsData ? teamsData.map(team => {
         const localTeam = supabaseToTeam(team);
         teams[team.id] = localTeam;
         return localTeam;
-      });
+      }) : [];
 
       // Fetch matches for this tournament
       const { data: matchesData, error: matchesError } = await supabase
@@ -238,6 +273,7 @@ export const useSupabaseTournament = () => {
         .eq('tournament_id', tournamentData.id);
 
       if (matchesError) {
+        console.error("Erro ao buscar partidas:", matchesError);
         setError(new Error(matchesError.message));
         toast({
           title: "Erro ao carregar partidas",
@@ -248,10 +284,12 @@ export const useSupabaseTournament = () => {
         return;
       }
 
+      console.log(`${matchesData?.length || 0} partidas encontradas`);
+
       // Convert matches to local format
-      const localMatches: Match[] = matchesData.map(match => 
+      const localMatches: Match[] = matchesData ? matchesData.map(match => 
         supabaseToMatch(match, teams)
-      );
+      ) : [];
 
       // Build the complete tournament object
       const completeTournament = supabaseToTournament(
@@ -260,8 +298,10 @@ export const useSupabaseTournament = () => {
         localMatches
       );
 
+      console.log("Torneio carregado com sucesso:", completeTournament);
       setTournament(completeTournament);
     } catch (e) {
+      console.error("Erro ao carregar torneio:", e);
       const error = e instanceof Error ? e : new Error('Erro desconhecido ao carregar o torneio');
       setError(error);
       toast({
@@ -361,6 +401,15 @@ export const useSupabaseTournament = () => {
         throw new Error('ID do torneio não fornecido');
       }
 
+      // Ensure the tournament ID is a valid UUID
+      const validTournamentId = ensureValidUUID(tournamentData.id);
+      if (validTournamentId !== tournamentData.id) {
+        console.warn(`ID do torneio foi convertido de "${tournamentData.id}" para "${validTournamentId}"`);
+        tournamentData.id = validTournamentId;
+      }
+
+      console.log("Atualizando torneio:", tournamentData.id);
+
       // Update tournament
       const { error: tournamentError } = await supabase
         .from('tournaments')
@@ -377,6 +426,7 @@ export const useSupabaseTournament = () => {
         .eq('id', tournamentData.id);
 
       if (tournamentError) {
+        console.error("Erro ao atualizar torneio:", tournamentError);
         throw new Error(`Erro ao atualizar torneio: ${tournamentError.message}`);
       }
 
@@ -485,6 +535,7 @@ export const useSupabaseTournament = () => {
       
       return true;
     } catch (e) {
+      console.error("Erro ao atualizar torneio:", e);
       const error = e instanceof Error ? e : new Error('Erro desconhecido ao atualizar o torneio');
       setError(error);
       toast({
@@ -503,6 +554,15 @@ export const useSupabaseTournament = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Ensure the tournament ID is a valid UUID
+      const validTournamentId = ensureValidUUID(tournamentId);
+      if (validTournamentId !== tournamentId) {
+        console.warn(`ID do torneio foi convertido de "${tournamentId}" para "${validTournamentId}"`);
+        tournamentId = validTournamentId;
+      }
+
+      console.log("Resetando torneio:", tournamentId);
 
       // Delete all matches
       const { error: matchesDeleteError } = await supabase
@@ -511,8 +571,11 @@ export const useSupabaseTournament = () => {
         .eq('tournament_id', tournamentId);
 
       if (matchesDeleteError) {
+        console.error("Erro ao excluir partidas:", matchesDeleteError);
         throw new Error(`Erro ao excluir partidas: ${matchesDeleteError.message}`);
       }
+
+      console.log("Partidas excluídas com sucesso");
 
       // Delete all teams
       const { error: teamsDeleteError } = await supabase
@@ -521,8 +584,11 @@ export const useSupabaseTournament = () => {
         .eq('tournament_id', tournamentId);
 
       if (teamsDeleteError) {
+        console.error("Erro ao excluir times:", teamsDeleteError);
         throw new Error(`Erro ao excluir times: ${teamsDeleteError.message}`);
       }
+
+      console.log("Times excluídos com sucesso");
 
       // Update tournament to reset round data
       const { error: tournamentUpdateError } = await supabase
@@ -535,8 +601,11 @@ export const useSupabaseTournament = () => {
         .eq('id', tournamentId);
 
       if (tournamentUpdateError) {
+        console.error("Erro ao resetar torneio:", tournamentUpdateError);
         throw new Error(`Erro ao resetar torneio: ${tournamentUpdateError.message}`);
       }
+
+      console.log("Torneio resetado com sucesso");
 
       toast({
         title: "Torneio resetado",
@@ -548,6 +617,7 @@ export const useSupabaseTournament = () => {
       
       return true;
     } catch (e) {
+      console.error("Erro ao resetar torneio:", e);
       const error = e instanceof Error ? e : new Error('Erro desconhecido ao resetar o torneio');
       setError(error);
       toast({
