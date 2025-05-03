@@ -167,15 +167,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     const updatedTeams = [...teams];
     matchesToRemove.forEach((match) => {
       if (match.completed && match.winner) {
-        // Reverter pontos do vencedor
-        const winnerIndex = updatedTeams.findIndex(t => t.id === match.winner?.id);
-        if (winnerIndex !== -1) {
-          updatedTeams[winnerIndex].totalPoints -= 100;
-          if (updatedTeams[winnerIndex].totalPoints < 0) {
-            updatedTeams[winnerIndex].totalPoints = 0;
-          }
-        }
-
         // Restaurar vida ao perdedor
         const loser = match.winner.id === match.teamA.id ? match.teamB : match.teamA;
         const loserIndex = updatedTeams.findIndex(t => t.id === loser.id);
@@ -367,7 +358,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                                   )}
                                   <span>{match.teamA.id ? match.teamA.name : 'Time a definir'}</span>
                                 </div>
-                                {match.completed && match.winner?.id !== match.teamA.id && (
+                                {match.completed && match.winner?.id !== match.teamA.id && match.teamA.eliminated && (
                                   <Badge variant="destructive" className="text-xs">Eliminado</Badge>
                                 )}
                                 {match.completed && match.winner?.id === match.teamA.id && (
@@ -399,7 +390,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
                                   )}
                                   <span>{match.teamB.id ? match.teamB.name : 'Time a definir'}</span>
                                 </div>
-                                {match.completed && match.winner?.id !== match.teamB.id && (
+                                {match.completed && match.winner?.id !== match.teamB.id && match.teamB.eliminated && (
                                   <Badge variant="destructive" className="text-xs">Eliminado</Badge>
                                 )}
                                 {match.completed && match.winner?.id === match.teamB.id && (
