@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import MatchStatusEditor from "@/components/MatchStatusEditor";
 import MatchEditDialog from "@/components/MatchEditDialog";
 import { useMatchManagement } from "@/hooks/useMatchManagement";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
+import { useToast } from "@/hooks/use-toast";
 
 interface MatchesTabProps {
   tournament: Tournament;
@@ -23,6 +23,9 @@ interface MatchesTabProps {
 const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament }) => {
   // Extract current round number
   const currentRoundNumber = parseInt(tournament.currentRound.replace(/\D/g, '') || "1");
+  
+  // Get toast directly from useToast hook
+  const { toast } = useToast();
   
   // Custom hooks for match and team management
   const { 
@@ -196,13 +199,6 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     
     setIsStatusDialogOpen(false);
   };
-
-  // Add toast to component scope
-  const { toast } = useTeamManagement({ 
-    initialTeams: teams, 
-    maxReentryRound: tournament.rules?.reentryAllowedUntilRound || 5,
-    currentRound: currentRoundNumber
-  });
 
   // Wrapper for complete match to update teams
   const handleCompleteMatchWrapper = (matchId: string) => {
