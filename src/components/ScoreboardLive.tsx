@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Tournament, Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,11 +41,6 @@ export default function ScoreboardLive({ tournament }: ScoreboardLiveProps) {
     const bNum = parseInt(b.replace(/\D/g, '') || "1");
     return aNum - bNum;
   });
-
-  // Filter rounds based on selection
-  const filteredRounds = selectedRound === "all" 
-    ? rounds 
-    : rounds.filter(round => round === selectedRound);
 
   // Hearts display helper function
   const renderHearts = (team: any) => (
@@ -104,11 +100,14 @@ export default function ScoreboardLive({ tournament }: ScoreboardLiveProps) {
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {/* Team A */}
-                            <div className={match.completed && match.winner?.id === match.teamA.id ? "bg-green-50 p-2 rounded" : "p-2"}>
+                            <div className="p-2">
                               <div className="flex items-center gap-1">
                                 <span className="font-medium">{match.teamA.name}</span>
                                 {match.teamA.eliminated && (
                                   <Badge variant="destructive" className="ml-2">Eliminado</Badge>
+                                )}
+                                {match.completed && match.winner?.id !== match.teamA.id && !match.teamA.eliminated && (
+                                  <Badge variant="outline" className="ml-2 text-slate-600">Derrota</Badge>
                                 )}
                                 {match.teamA.reEntered && (
                                   <div className="flex items-center">
@@ -128,11 +127,14 @@ export default function ScoreboardLive({ tournament }: ScoreboardLiveProps) {
                             <div className="flex items-center justify-center text-sm text-gray-400 my-1">vs</div>
                             
                             {/* Team B */}
-                            <div className={match.completed && match.winner?.id === match.teamB.id ? "bg-green-50 p-2 rounded" : "p-2"}>
+                            <div className="p-2">
                               <div className="flex items-center gap-1">
                                 <span className="font-medium">{match.teamB.name}</span>
                                 {match.teamB.eliminated && (
                                   <Badge variant="destructive" className="ml-2">Eliminado</Badge>
+                                )}
+                                {match.completed && match.winner?.id !== match.teamB.id && !match.teamB.eliminated && (
+                                  <Badge variant="outline" className="ml-2 text-slate-600">Derrota</Badge>
                                 )}
                                 {match.teamB.reEntered && (
                                   <div className="flex items-center">

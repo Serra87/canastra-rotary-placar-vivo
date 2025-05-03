@@ -12,7 +12,9 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
   // Sort teams by points in descending order
   const sortedTeams = [...teams].sort((a, b) => b.totalPoints - a.totalPoints);
   
-  const renderLives = (lives: number) => {
+  const renderLives = (lives: number, reEntered: boolean) => {
+    const maxLives = reEntered ? 1 : 2; // Re-entered teams have only 1 max life
+    
     return (
       <div className="flex items-center justify-center space-x-1">
         {Array.from({ length: lives }).map((_, index) => (
@@ -22,7 +24,7 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
             className="fill-red-500 text-red-500"
           />
         ))}
-        {Array.from({ length: 3 - lives }).map((_, index) => (
+        {Array.from({ length: maxLives - lives }).map((_, index) => (
           <Heart 
             key={`empty-${index}`} 
             size={14} 
@@ -67,7 +69,7 @@ export const ScoreboardTable = ({ teams }: ScoreboardTableProps) => {
                   {team.eliminated ? (
                     <span className="text-slate-400">0</span>
                   ) : (
-                    renderLives(team.lives)
+                    renderLives(team.lives, team.reEntered)
                   )}
                 </TableCell>
                 <TableCell className="text-center">
