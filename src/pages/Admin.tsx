@@ -26,8 +26,12 @@ const Admin = () => {
 
   const handleReset = () => {
     console.log("Solicitação de reset do torneio iniciada");
-    resetTournament();
-    setIsResetDialogOpen(false);
+    if (tournament && tournament.id) {
+      resetTournament();
+      setIsResetDialogOpen(false);
+    } else {
+      console.error("Tentativa de reset sem torneio válido");
+    }
   };
 
   return (

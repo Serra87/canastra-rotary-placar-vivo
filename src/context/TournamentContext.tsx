@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Tournament } from "@/lib/types";
+import { Tournament, Team, Match } from "@/lib/types";
 import { useSupabaseTournament } from "@/hooks/useSupabaseTournament";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "@/hooks/use-toast";
@@ -35,6 +36,41 @@ const ensureDateObject = (dateValue: string | Date): Date => {
     console.error("Erro ao converter data:", error);
     return new Date();
   }
+};
+
+// Função auxiliar para criar um mapa de referências de times para uso rápido
+const createTeamsMap = (teams: Team[]): Record<string, Team> => {
+  const teamsMap: Record<string, Team> = {};
+  teams.forEach(team => {
+    teamsMap[team.id] = team;
+  });
+  return teamsMap;
+};
+
+// Função auxiliar para sincronizar referências de times nas partidas
+const syncTeamReferencesInMatches = (matches: Match[], teamsMap: Record<string, Team>): Match[] => {
+  return matches.map(match => {
+    // Obter referências atualizadas dos times
+    const updatedTeamA = match.teamA.id !== 'bye' && teamsMap[match.teamA.id] 
+      ? { ...teamsMap[match.teamA.id] } 
+      : match.teamA;
+    
+    const updatedTeamB = match.teamB.id !== 'bye' && teamsMap[match.teamB.id] 
+      ? { ...teamsMap[match.teamB.id] } 
+      : match.teamB;
+    
+    const updatedWinner = match.winner && teamsMap[match.winner.id] 
+      ? { ...teamsMap[match.winner.id] } 
+      : match.winner;
+    
+    // Retornar match com referências atualizadas
+    return {
+      ...match,
+      teamA: updatedTeamA,
+      teamB: updatedTeamB,
+      winner: updatedWinner
+    };
+  });
 };
 
 // Provedor do contexto
@@ -117,8 +153,21 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   useEffect(() => {
     if (supabaseTournament) {
       console.log("Torneio carregado do Supabase:", supabaseTournament.id);
-      setTournament(supabaseTournament);
-      setRankedTeams(getRankedTeams(supabaseTournament));
+      
+      // Verificar e corrigir referências entre times e partidas
+      const teamsMap = createTeamsMap(supabaseTournament.teams);
+      const syncedMatches = syncTeamReferencesInMatches(supabaseTournament.matches, teamsMap);
+      
+      // Criar torneio com partidas sincronizadas
+      const syncedTournament = {
+        ...supabaseTournament,
+        matches: syncedMatches
+      };
+      
+      // Atualizar estado
+      setTournament(syncedTournament);
+      setRankedTeams(getRankedTeams(syncedTournament));
+      
       // Limpar o localStorage para evitar conflitos
       try {
         localStorage.removeItem(TOURNAMENT_STORAGE_KEY);
@@ -146,7 +195,7 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   }, [supabaseError]);
 
-  // Função para atualizar o torneio
+  // Função para atualizar o torneio com garantia de integridade de referências
   const updateTournament = async (updatedTournament: Tournament) => {
     try {
       console.log("Atualizando torneio:", updatedTournament.id);
@@ -165,29 +214,30 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
         }));
       }
       
+      // Criar mapa de times para referência rápida
+      const teamsMap = createTeamsMap(tournamentCopy.teams);
+      
       // Garantir que as referências das partidas usem os dados mais recentes das equipes
       if (tournamentCopy.matches && tournamentCopy.teams) {
         tournamentCopy.matches = tournamentCopy.matches.map(match => {
           // Encontra as referências mais recentes das equipes
-          const currentTeamA = tournamentCopy.teams.find(t => t.id === match.teamA.id);
-          const currentTeamB = tournamentCopy.teams.find(t => t.id === match.teamB.id);
-          const currentWinner = match.winner ? 
-            tournamentCopy.teams.find(t => t.id === match.winner?.id) : undefined;
+          const currentTeamA = match.teamA.id !== 'bye' ? teamsMap[match.teamA.id] : match.teamA;
+          const currentTeamB = match.teamB.id !== 'bye' ? teamsMap[match.teamB.id] : match.teamB;
+          const currentWinner = match.winner ? teamsMap[match.winner.id] : undefined;
+          
+          if (!currentTeamA || !currentTeamB) {
+            console.error(`Referência de time ausente na partida ${match.id}`, 
+                         {teamA_id: match.teamA.id, teamB_id: match.teamB.id});
+          }
             
           // Atualiza os dados das equipes incorporados na partida para garantir consistência
           return {
             ...match,
             teamA: currentTeamA ? { 
-              ...match.teamA, 
-              lives: currentTeamA.lives,
-              eliminated: currentTeamA.eliminated,
-              reEntered: currentTeamA.reEntered
+              ...currentTeamA
             } : match.teamA,
             teamB: currentTeamB ? {
-              ...match.teamB,
-              lives: currentTeamB.lives,
-              eliminated: currentTeamB.eliminated,
-              reEntered: currentTeamB.reEntered
+              ...currentTeamB
             } : match.teamB,
             winner: currentWinner
           };

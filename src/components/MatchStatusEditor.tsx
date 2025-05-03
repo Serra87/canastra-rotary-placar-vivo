@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Match, Team } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +53,18 @@ export default function MatchStatusEditor({
   const [showResultDialog, setShowResultDialog] = useState(false);
   
   // Add states for team lives
-  const [teamALives, setTeamALives] = useState<number>(match.teamA.lives);
-  const [teamBLives, setTeamBLives] = useState<number>(match.teamB.lives);
+  const [teamALives, setTeamALives] = useState<number>(match.teamA.lives || 0);
+  const [teamBLives, setTeamBLives] = useState<number>(match.teamB.lives || 0);
+
+  // Update state when match properties change
+  useEffect(() => {
+    setStatus(match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando");
+    setScoreA(match.scoreA);
+    setScoreB(match.scoreB);
+    setWinner(match.winner?.id);
+    setTeamALives(match.teamA.lives || 0);
+    setTeamBLives(match.teamB.lives || 0);
+  }, [match]);
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
@@ -121,8 +131,21 @@ export default function MatchStatusEditor({
       return;
     }
     
-    const winningTeam = teams.find((t) => t.id === winner);
-    const losingTeam = winner === match.teamA.id ? match.teamB : match.teamA;
+    // Encontrar a referência completa do time vencedor
+    const winningTeamId = winner;
+    const winningTeam = teams.find((t) => t.id === winningTeamId);
+    
+    if (!winningTeam) {
+      console.error("Time vencedor não encontrado:", winningTeamId);
+      toast({ 
+        title: "Erro ao definir vencedor", 
+        description: "Time vencedor não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const losingTeam = winningTeamId === match.teamA.id ? match.teamB : match.teamA;
     let updatedTeams = [...teams];
 
     // Update both teams with manually adjusted lives
@@ -146,6 +169,10 @@ export default function MatchStatusEditor({
       return t;
     });
 
+    // Garantir que os times A e B nas partidas contenham os dados mais recentes
+    const updatedTeamA = updatedTeams.find(t => t.id === match.teamA.id) || match.teamA;
+    const updatedTeamB = updatedTeams.find(t => t.id === match.teamB.id) || match.teamB;
+
     // Update match
     const updatedMatch: Match = {
       ...match,
@@ -155,14 +182,10 @@ export default function MatchStatusEditor({
       completed: true,
       inProgress: false,
       teamA: {
-        ...match.teamA,
-        lives: teamALives,
-        eliminated: teamALives <= 0 && !match.teamA.reEntered
+        ...updatedTeamA
       },
       teamB: {
-        ...match.teamB, 
-        lives: teamBLives,
-        eliminated: teamBLives <= 0 && !match.teamB.reEntered
+        ...updatedTeamB
       }
     };
 
@@ -197,10 +220,13 @@ export default function MatchStatusEditor({
     </div>
   );
 
+  // Determinar se os nomes dos times estão disponíveis
+  const hasTeamNames = match.teamA?.name && match.teamB?.name;
+
   return (
     <div className="space-y-4">
       <Label>Status da Partida</Label>
-      <Select value={status} onValueChange={handleStatusChange} disabled={disabled}>
+      <Select value={status} onValueChange={handleStatusChange} disabled={disabled || !hasTeamNames}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione o status" />
         </SelectTrigger>
@@ -218,15 +244,16 @@ export default function MatchStatusEditor({
           </DialogHeader>
           <div className="space-y-6">
             <div className="border-b pb-3">
-              <Label>{match.teamA.name}</Label>
+              <Label>{match.teamA?.name || 'Time A'}</Label>
               <div className="mt-2 flex items-center space-x-2">
                 <Input
                   type="number"
                   value={scoreA}
                   onChange={(e) => {
-                    setScoreA(Number(e.target.value));
+                    const value = Number(e.target.value);
+                    setScoreA(value);
                     if (onUpdateScore) {
-                      onUpdateScore(match.id, 'A', Number(e.target.value));
+                      onUpdateScore(match.id, 'A', value);
                     }
                   }}
                   className="w-24"
@@ -255,19 +282,20 @@ export default function MatchStatusEditor({
                   </Button>
                 </div>
               </div>
-              {renderHearts(match.teamA, teamALives)}
+              {match.teamA && renderHearts(match.teamA, teamALives)}
             </div>
             
             <div className="border-b pb-3">
-              <Label>{match.teamB.name}</Label>
+              <Label>{match.teamB?.name || 'Time B'}</Label>
               <div className="mt-2 flex items-center space-x-2">
                 <Input
                   type="number"
                   value={scoreB}
                   onChange={(e) => {
-                    setScoreB(Number(e.target.value));
+                    const value = Number(e.target.value);
+                    setScoreB(value);
                     if (onUpdateScore) {
-                      onUpdateScore(match.id, 'B', Number(e.target.value));
+                      onUpdateScore(match.id, 'B', value);
                     }
                   }}
                   className="w-24"
@@ -296,18 +324,18 @@ export default function MatchStatusEditor({
                   </Button>
                 </div>
               </div>
-              {renderHearts(match.teamB, teamBLives)}
+              {match.teamB && renderHearts(match.teamB, teamBLives)}
             </div>
             
             <div>
               <Label>Vencedor</Label>
-              <Select value={winner} onValueChange={setWinner} disabled={disabled}>
+              <Select value={winner} onValueChange={setWinner} disabled={disabled || !hasTeamNames}>
                 <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Escolha o vencedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={match.teamA.id}>{match.teamA.name}</SelectItem>
-                  <SelectItem value={match.teamB.id}>{match.teamB.name}</SelectItem>
+                  <SelectItem value={match.teamA?.id}>{match.teamA?.name || 'Time A'}</SelectItem>
+                  <SelectItem value={match.teamB?.id}>{match.teamB?.name || 'Time B'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

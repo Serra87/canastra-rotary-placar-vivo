@@ -130,8 +130,10 @@ export const matchToSupabase = (
 };
 
 // Function to convert a Supabase match to local format
-export const supabaseToMatch = (match: SupabaseMatch, teams: Record<string, Team>): Match => {
-  const teamA = match.team_a_id ? teams[match.team_a_id] : { 
+// MAJOR FIX: Enhanced to ensure full Team objects are correctly linked in the match
+export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, Team>): Match => {
+  // Create default "bye" team for null references
+  const byeTeam: Team = { 
     id: 'bye', 
     name: 'Bye', 
     players: ['', ''] as [string, string], 
@@ -141,18 +143,21 @@ export const supabaseToMatch = (match: SupabaseMatch, teams: Record<string, Team
     reEntered: false 
   };
 
-  const teamB = match.team_b_id ? teams[match.team_b_id] : { 
-    id: 'bye', 
-    name: 'Bye', 
-    players: ['', ''] as [string, string], 
-    eliminated: false, 
-    totalPoints: 0, 
-    lives: 0, 
-    reEntered: false 
-  };
+  // Use the complete team objects from teamsMap to ensure all properties are available
+  const teamA = match.team_a_id && teamsMap[match.team_a_id] 
+    ? { ...teamsMap[match.team_a_id] } // Create a copy to avoid reference issues
+    : byeTeam;
 
-  const winner = match.winner_id ? teams[match.winner_id] : undefined;
+  const teamB = match.team_b_id && teamsMap[match.team_b_id] 
+    ? { ...teamsMap[match.team_b_id] } // Create a copy to avoid reference issues
+    : byeTeam;
 
+  // For winner, also make sure to get the full team object
+  const winner = match.winner_id && teamsMap[match.winner_id] 
+    ? { ...teamsMap[match.winner_id] } // Create a copy to avoid reference issues
+    : undefined;
+
+  // Create the match with complete team references
   return {
     id: match.id,
     teamA,
@@ -258,11 +263,11 @@ export const useSupabaseTournament = () => {
 
       console.log(`${teamsData?.length || 0} times encontrados`);
 
-      // Create teams map to use when building matches
-      const teams: Record<string, Team> = {};
+      // Create teams map for quick lookups
+      const teamsMap: Record<string, Team> = {};
       const localTeams: Team[] = teamsData ? teamsData.map(team => {
         const localTeam = supabaseToTeam(team);
-        teams[team.id] = localTeam;
+        teamsMap[team.id] = localTeam;
         return localTeam;
       }) : [];
 
@@ -286,9 +291,9 @@ export const useSupabaseTournament = () => {
 
       console.log(`${matchesData?.length || 0} partidas encontradas`);
 
-      // Convert matches to local format
+      // Convert matches to local format with complete team references
       const localMatches: Match[] = matchesData ? matchesData.map(match => 
-        supabaseToMatch(match, teams)
+        supabaseToMatch(match, teamsMap)
       ) : [];
 
       // Build the complete tournament object
