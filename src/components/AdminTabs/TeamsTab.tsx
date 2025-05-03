@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,14 +62,14 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
   
   // Handle team editing
   const handleEditTeam = (team: Team) => {
-    setTeamToEdit(team);
+    setTeamToEdit({...team}); // Create a copy to prevent reference issues
     setIsTeamDialogOpen(true);
   };
 
   // Handle team addition
   const handleAddNewTeam = () => {
     const newTeam = handleAddTeam();
-    setTeamToEdit(newTeam);
+    setTeamToEdit({...newTeam}); // Create a copy to prevent reference issues
     setIsTeamDialogOpen(true);
   };
 
@@ -173,79 +172,87 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
               </TableRow>
             </TableHeader>
             <TableBody>
-              {teams.map(team => (
-                <TableRow key={team.id} className={team.eliminated ? "bg-slate-50" : ""}>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {team.reEntered && (
-                        <AlertTriangle size={16} className="text-yellow-500" />
-                      )}
-                      <span>{team.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{team.players.join(' / ')}</TableCell>
-                  <TableCell>{team.sponsor.name}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-center">
-                      {Array.from({ length: team.lives }).map((_, i) => (
-                        <span key={i} className="text-red-500 mr-1">❤️</span>
-                      ))}
-                      {Array.from({ length: (team.reEntered ? 1 : 2) - team.lives }).map((_, i) => (
-                        <span key={`empty-${i}`} className="text-gray-300 mr-1">♡</span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">{team.totalPoints}</TableCell>
-                  <TableCell className="text-center">
-                    {team.eliminated ? (
-                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-slate-200 text-slate-600">
-                        Eliminado
-                      </span>
-                    ) : team.reEntered ? (
-                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                        Reinscrito
-                      </span>
-                    ) : (
-                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                        Ativo
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditTeam(team)}
-                      >
-                        <Edit size={14} className="mr-1" />
-                        Editar
-                      </Button>
-                      
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleDeleteTeam(team)}
-                      >
-                        <Trash2 size={14} className="mr-1" />
-                        Excluir
-                      </Button>
-                      
-                      {team.eliminated && !team.reEntered && (
-                        <Button 
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleReenterTeam(team.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <AlertTriangle size={14} />
-                          Reinscrever
-                        </Button>
-                      )}
-                    </div>
+              {teams.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum time cadastrado. Clique em "Adicionar Time" para começar.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                teams.map(team => (
+                  <TableRow key={team.id} className={team.eliminated ? "bg-slate-50" : ""}>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {team.reEntered && (
+                          <AlertTriangle size={16} className="text-yellow-500" />
+                        )}
+                        <span>{team.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{team.players.join(' / ')}</TableCell>
+                    <TableCell>{team.sponsor.name}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex justify-center">
+                        {Array.from({ length: team.lives }).map((_, i) => (
+                          <span key={i} className="text-red-500 mr-1">❤️</span>
+                        ))}
+                        {Array.from({ length: (team.reEntered ? 1 : 2) - team.lives }).map((_, i) => (
+                          <span key={`empty-${i}`} className="text-gray-300 mr-1">♡</span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">{team.totalPoints}</TableCell>
+                    <TableCell className="text-center">
+                      {team.eliminated ? (
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-slate-200 text-slate-600">
+                          Eliminado
+                        </span>
+                      ) : team.reEntered ? (
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                          Reinscrito
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                          Ativo
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditTeam(team)}
+                        >
+                          <Edit size={14} className="mr-1" />
+                          Editar
+                        </Button>
+                        
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDeleteTeam(team)}
+                        >
+                          <Trash2 size={14} className="mr-1" />
+                          Excluir
+                        </Button>
+                        
+                        {team.eliminated && !team.reEntered && (
+                          <Button 
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleReenterTeam(team.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <AlertTriangle size={14} />
+                            Reinscrever
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -256,7 +263,10 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament }) =
         <TeamEditDialog
           team={teamToEdit}
           open={isTeamDialogOpen}
-          onClose={() => setIsTeamDialogOpen(false)}
+          onClose={() => {
+            setIsTeamDialogOpen(false);
+            setTeamToEdit(null);
+          }}
           onSave={handleSaveTeam}
           currentRound={currentRoundNumber}
           maxReentryRound={tournament.rules?.reentryAllowedUntilRound || 5}

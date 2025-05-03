@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Team, Match } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -24,12 +25,14 @@ export const useTeamManagement = ({
 
   // Handle adding a new team
   const handleAddTeam = () => {
-    const newId = `team-${teams.length + 1}`;
+    const newTeamId = `team-${Date.now()}`;
+    const newSponsorId = `sponsor-${Date.now()}`;
+    
     const newTeam: Team = {
-      id: newId,
+      id: newTeamId,
       name: `Nova Dupla ${teams.length + 1}`,
       players: ["Jogador 1", "Jogador 2"] as [string, string],
-      sponsor: { id: `sponsor-${teams.length + 1}`, name: "Patrocinador" },
+      sponsor: { id: newSponsorId, name: "Patrocinador" },
       eliminated: false,
       totalPoints: 0,
       lives: 2,
@@ -58,7 +61,22 @@ export const useTeamManagement = ({
       updatedTeam.lives = 0;
     }
     
-    const updatedTeams = teams.map(t => t.id === updatedTeam.id ? updatedTeam : t);
+    // Find team index to replace
+    const teamIndex = teams.findIndex(t => t.id === updatedTeam.id);
+    
+    // If team doesn't exist, don't update
+    if (teamIndex === -1) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Time não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedTeams = [...teams];
+    updatedTeams[teamIndex] = updatedTeam;
+    
     setTeams(updatedTeams);
     
     // Update matches if team name or other details changed

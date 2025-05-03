@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Team } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,13 @@ interface TeamEditDialogProps {
 const TeamEditDialog = ({ team, open, onClose, onSave, currentRound, maxReentryRound }: TeamEditDialogProps) => {
   const { toast } = useToast();
   const [editedTeam, setEditedTeam] = useState<Team>({ ...team });
+
+  // Reset the form when the team prop changes
+  useEffect(() => {
+    if (open) {
+      setEditedTeam({ ...team });
+    }
+  }, [team, open]);
 
   const handleLivesChange = (lives: number) => {
     if (lives >= 0 && lives <= (editedTeam.reEntered ? 1 : 2)) {
@@ -50,6 +57,16 @@ const TeamEditDialog = ({ team, open, onClose, onSave, currentRound, maxReentryR
   };
 
   const handleSave = () => {
+    // Validate team data before saving
+    if (!editedTeam.name.trim()) {
+      toast({
+        title: "Erro ao salvar",
+        description: "O nome do time não pode estar vazio",
+        variant: "destructive"
+      });
+      return;
+    }
+
     onSave(editedTeam);
     onClose();
   };
