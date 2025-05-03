@@ -1,22 +1,13 @@
+
 import React, { useState } from "react";
-import { Team, Tournament, Match } from "@/lib/types";
+import { Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Edit, Trash2, Loader2 } from "lucide-react";
 import TeamEditDialog from "@/components/TeamEditDialog";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import TeamList from "@/components/Teams/TeamList";
+import TeamsSkeleton from "@/components/Teams/TeamsSkeleton";
+import DeleteTeamDialog from "@/components/Teams/DeleteTeamDialog";
 
 interface TeamsTabProps {
   tournament: Tournament;
@@ -91,7 +82,7 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament, loa
     );
 
     // Update team references in matches if needed
-    const updatedMatches: Match[] = isInMatches 
+    const updatedMatches = isInMatches 
       ? tournament.matches.map(match => {
           if (match.teamA.id === teamToDelete.id) {
             return { 
@@ -150,44 +141,10 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament, loa
     return (
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Gerenciar Times</CardTitle>
-            <Button disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando...
-            </Button>
-          </div>
+          <CardTitle>Gerenciar Times</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Jogadores</TableHead>
-                <TableHead className="text-center">Vidas</TableHead>
-                <TableHead className="text-center">Pontos</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[1, 2, 3].map((i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                  <TableCell className="text-center"><Skeleton className="h-5 w-12 mx-auto" /></TableCell>
-                  <TableCell className="text-center"><Skeleton className="h-5 w-12 mx-auto" /></TableCell>
-                  <TableCell className="text-center"><Skeleton className="h-5 w-16 mx-auto" /></TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                      <Skeleton className="h-9 w-20" />
-                      <Skeleton className="h-9 w-20" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <TeamsSkeleton />
         </CardContent>
       </Card>
     );
@@ -205,100 +162,12 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament, loa
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Jogadores</TableHead>
-                <TableHead className="text-center">Vidas</TableHead>
-                <TableHead className="text-center">Pontos</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teams.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Nenhum time cadastrado. Clique em "Adicionar Time" para começar.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                teams.map(team => (
-                  <TableRow key={team.id} className={team.eliminated ? "bg-slate-50" : ""}>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {team.reEntered && (
-                          <AlertTriangle size={16} className="text-yellow-500" />
-                        )}
-                        <span>{team.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{team.players.join(' / ')}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center">
-                        {Array.from({ length: team.lives }).map((_, i) => (
-                          <span key={i} className="text-red-500 mr-1">❤️</span>
-                        ))}
-                        {Array.from({ length: (team.reEntered ? 1 : 2) - team.lives }).map((_, i) => (
-                          <span key={`empty-${i}`} className="text-gray-300 mr-1">♡</span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">{team.totalPoints}</TableCell>
-                    <TableCell className="text-center">
-                      {team.eliminated ? (
-                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-slate-200 text-slate-600">
-                          Eliminado
-                        </span>
-                      ) : team.reEntered ? (
-                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                          Reinscrito
-                        </span>
-                      ) : (
-                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          Ativo
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEditTeam(team)}
-                        >
-                          <Edit size={14} className="mr-1" />
-                          Editar
-                        </Button>
-                        
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteTeam(team)}
-                        >
-                          <Trash2 size={14} className="mr-1" />
-                          Excluir
-                        </Button>
-                        
-                        {team.eliminated && !team.reEntered && (
-                          <Button 
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleReenterTeam(team.id)}
-                            className="flex items-center gap-1"
-                          >
-                            <AlertTriangle size={14} />
-                            Reinscrever
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <TeamList
+            teams={teams}
+            onEditTeam={handleEditTeam}
+            onDeleteTeam={handleDeleteTeam}
+            onReenterTeam={handleReenterTeam}
+          />
         </CardContent>
       </Card>
       
@@ -318,33 +187,13 @@ const TeamsTab: React.FC<TeamsTabProps> = ({ tournament, onUpdateTournament, loa
       )}
       
       {/* Team delete confirmation dialog */}
-      <AlertDialog 
-        open={isDeleteDialogOpen} 
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o time {teamToDelete?.name}? Esta ação não pode ser desfeita.
-              {tournament.matches.some(m => 
-                (m.teamA.id === teamToDelete?.id || m.teamB.id === teamToDelete?.id) && 
-                !m.completed
-              ) && (
-                <p className="mt-2 text-red-500 font-semibold">
-                  Atenção: Este time possui partidas em andamento ou agendadas. Excluí-lo afetará essas partidas.
-                </p>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDeleteTeam}>
-              Excluir Time
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteTeamDialog
+        teamToDelete={teamToDelete}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDeleteTeam}
+        matches={tournament.matches}
+      />
     </>
   );
 };
