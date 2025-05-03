@@ -112,7 +112,11 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                           {match.completed && match.winner?.id !== match.teamA.id && (
                             <div className="absolute inset-0 pointer-events-none eliminated-overlay">
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                {match.teamA.eliminated ? (
+                                  <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="absolute z-10 text-slate-600">Derrota</Badge>
+                                )}
                                 <div className="absolute h-[2px] w-full bg-red-500 rotate-12 transform"></div>
                                 <div className="absolute h-[2px] w-full bg-red-500 -rotate-12 transform"></div>
                               </div>
@@ -155,7 +159,11 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
                           {match.completed && match.winner?.id !== match.teamB.id && (
                             <div className="absolute inset-0 pointer-events-none eliminated-overlay">
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                {match.teamB.eliminated ? (
+                                  <Badge variant="destructive" className="absolute z-10">Eliminado</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="absolute z-10 text-slate-600">Derrota</Badge>
+                                )}
                                 <div className="absolute h-[2px] w-full bg-red-500 rotate-12 transform"></div>
                                 <div className="absolute h-[2px] w-full bg-red-500 -rotate-12 transform"></div>
                               </div>
