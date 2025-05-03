@@ -26,26 +26,36 @@ export function useMatchStatusEditor({
   const [status, setStatus] = useState<string>(
     match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando"
   );
-  const [scoreA, setScoreA] = useState<number>(match.scoreA);
-  const [scoreB, setScoreB] = useState<number>(match.scoreB);
+  const [scoreA, setScoreA] = useState<number>(match.scoreA || 0);
+  const [scoreB, setScoreB] = useState<number>(match.scoreB || 0);
   const [winner, setWinner] = useState<string | undefined>(match.winner?.id);
   const [showResultDialog, setShowResultDialog] = useState(false);
   
   // Team lives states
-  const [teamALives, setTeamALives] = useState<number>(match.teamA.lives || 0);
-  const [teamBLives, setTeamBLives] = useState<number>(match.teamB.lives || 0);
+  const [teamALives, setTeamALives] = useState<number>(match.teamA?.lives || 0);
+  const [teamBLives, setTeamBLives] = useState<number>(match.teamB?.lives || 0);
+
+  // Determine if the teams have names available
+  const hasTeamNames = Boolean(match.teamA?.name && match.teamB?.name);
 
   // Update state when match properties change
   useEffect(() => {
+    console.log("Match updated in useMatchStatusEditor:", match);
     setStatus(match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando");
-    setScoreA(match.scoreA);
-    setScoreB(match.scoreB);
+    setScoreA(match.scoreA || 0);
+    setScoreB(match.scoreB || 0);
     setWinner(match.winner?.id);
-    setTeamALives(match.teamA.lives || 0);
-    setTeamBLives(match.teamB.lives || 0);
-  }, [match]);
+    setTeamALives(match.teamA?.lives || 0);
+    setTeamBLives(match.teamB?.lives || 0);
+    
+    // Debug logs to help identify issues
+    console.log("Teams available:", teams.length);
+    console.log("Match teamA:", match.teamA?.id, match.teamA?.name);
+    console.log("Match teamB:", match.teamB?.id, match.teamB?.name);
+  }, [match, teams]);
 
   const handleStatusChange = (value: string) => {
+    console.log("Status changed to:", value);
     setStatus(value);
     
     // Update match status based on selection
@@ -79,6 +89,7 @@ export function useMatchStatusEditor({
         description: "Partida iniciada" 
       });
     } else if (value === "Finalizada") {
+      console.log("Opening result dialog");
       setShowResultDialog(true);
       if (onCompleteMatch) {
         onCompleteMatch();
@@ -90,13 +101,15 @@ export function useMatchStatusEditor({
   const handleUpdateTeamLives = (team: 'A' | 'B', increment: boolean) => {
     if (team === 'A') {
       const newLives = increment 
-        ? Math.min((match.teamA.reEntered ? 1 : 2), teamALives + 1) 
+        ? Math.min((match.teamA?.reEntered ? 1 : 2), teamALives + 1) 
         : Math.max(0, teamALives - 1);
+      console.log(`Updating team A lives from ${teamALives} to ${newLives}`);
       setTeamALives(newLives);
     } else {
       const newLives = increment 
-        ? Math.min((match.teamB.reEntered ? 1 : 2), teamBLives + 1) 
+        ? Math.min((match.teamB?.reEntered ? 1 : 2), teamBLives + 1) 
         : Math.max(0, teamBLives - 1);
+      console.log(`Updating team B lives from ${teamBLives} to ${newLives}`);
       setTeamBLives(newLives);
     }
   };
@@ -110,12 +123,12 @@ export function useMatchStatusEditor({
       return;
     }
     
-    // Encontrar a referência completa do time vencedor
+    // Find the winning team reference
     const winningTeamId = winner;
     const winningTeam = teams.find((t) => t.id === winningTeamId);
     
     if (!winningTeam) {
-      console.error("Time vencedor não encontrado:", winningTeamId);
+      console.error("Winning team not found:", winningTeamId);
       toast({ 
         title: "Erro ao definir vencedor", 
         description: "Time vencedor não encontrado",
@@ -123,13 +136,12 @@ export function useMatchStatusEditor({
       });
       return;
     }
-    
-    const losingTeam = winningTeamId === match.teamA.id ? match.teamB : match.teamA;
-    let updatedTeams = [...teams];
 
+    console.log("Confirming result with winner:", winningTeam.name);
+    
     // Update both teams with manually adjusted lives
-    updatedTeams = updatedTeams.map((t) => {
-      if (t.id === match.teamA.id) {
+    let updatedTeams = teams.map((t) => {
+      if (t.id === match.teamA?.id) {
         const eliminated = teamALives <= 0 && !match.teamA.reEntered;
         return {
           ...t,
@@ -137,7 +149,7 @@ export function useMatchStatusEditor({
           eliminated
         };
       }
-      if (t.id === match.teamB.id) {
+      if (t.id === match.teamB?.id) {
         const eliminated = teamBLives <= 0 && !match.teamB.reEntered;
         return {
           ...t,
@@ -148,11 +160,11 @@ export function useMatchStatusEditor({
       return t;
     });
 
-    // Garantir que os times A e B nas partidas contenham os dados mais recentes
-    const updatedTeamA = updatedTeams.find(t => t.id === match.teamA.id) || match.teamA;
-    const updatedTeamB = updatedTeams.find(t => t.id === match.teamB.id) || match.teamB;
+    // Get updated references to the teams involved in the match
+    const updatedTeamA = updatedTeams.find(t => t.id === match.teamA?.id) || match.teamA;
+    const updatedTeamB = updatedTeams.find(t => t.id === match.teamB?.id) || match.teamB;
 
-    // Update match
+    // Update match with latest team data and result info
     const updatedMatch: Match = {
       ...match,
       scoreA,
@@ -160,20 +172,17 @@ export function useMatchStatusEditor({
       winner: winningTeam,
       completed: true,
       inProgress: false,
-      teamA: {
-        ...updatedTeamA
-      },
-      teamB: {
-        ...updatedTeamB
-      }
+      teamA: updatedTeamA,
+      teamB: updatedTeamB
     };
 
     if (onSave) {
+      console.log("Saving updated match:", updatedMatch);
       onSave(updatedMatch, updatedTeams);
     }
 
     if (onSetWinner && winner) {
-      onSetWinner(match.id, winner === match.teamA.id ? 'A' : 'B');
+      onSetWinner(match.id, winner === match.teamA?.id ? 'A' : 'B');
     }
 
     setShowResultDialog(false);
@@ -183,9 +192,6 @@ export function useMatchStatusEditor({
       variant: "default"
     });
   };
-
-  // Determinar se os nomes dos times estão disponíveis
-  const hasTeamNames = match.teamA?.name && match.teamB?.name;
 
   return {
     status,

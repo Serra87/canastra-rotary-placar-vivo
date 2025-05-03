@@ -26,6 +26,14 @@ export const MatchTeamScore: React.FC<MatchTeamScoreProps> = ({
   onLivesUpdate,
   disabled = false 
 }) => {
+  // Safety check to handle potential undefined or invalid team references
+  if (!team) {
+    console.error("Team is undefined in MatchTeamScore");
+    return null;
+  }
+
+  console.log("Rendering MatchTeamScore for team:", team?.id, team?.name);
+  
   return (
     <div className="border-b pb-3">
       <Label>{team?.name || 'Time'}</Label>

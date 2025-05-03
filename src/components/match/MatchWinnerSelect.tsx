@@ -26,6 +26,16 @@ export const MatchWinnerSelect: React.FC<MatchWinnerSelectProps> = ({
   onValueChange,
   disabled = false
 }) => {
+  console.log("Rendering MatchWinnerSelect with value:", value);
+  console.log("Team A:", match.teamA?.id, match.teamA?.name);
+  console.log("Team B:", match.teamB?.id, match.teamB?.name);
+  
+  // Safety check for missing team data
+  if (!match.teamA || !match.teamB) {
+    console.error("Missing team data in MatchWinnerSelect");
+    return null;
+  }
+  
   return (
     <div>
       <Label>Vencedor</Label>
@@ -38,8 +48,8 @@ export const MatchWinnerSelect: React.FC<MatchWinnerSelectProps> = ({
           <SelectValue placeholder="Escolha o vencedor" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={match.teamA?.id}>{match.teamA?.name || 'Time A'}</SelectItem>
-          <SelectItem value={match.teamB?.id}>{match.teamB?.name || 'Time B'}</SelectItem>
+          <SelectItem value={match.teamA?.id || ''}>{match.teamA?.name || 'Time A'}</SelectItem>
+          <SelectItem value={match.teamB?.id || ''}>{match.teamB?.name || 'Time B'}</SelectItem>
         </SelectContent>
       </Select>
     </div>

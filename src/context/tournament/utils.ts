@@ -24,12 +24,14 @@ export const createTeamsMap = (teams: Team[]): Record<string, Team> => {
 // Function to sync team references in matches
 export const syncTeamReferencesInMatches = (matches: Match[], teamsMap: Record<string, Team>): Match[] => {
   return matches.map(match => {
+    console.log(`Syncing teams for match ${match.id} between ${match.teamA?.name} and ${match.teamB?.name}`);
+    
     // Get updated team references
-    const updatedTeamA = match.teamA.id !== 'bye' && teamsMap[match.teamA.id] 
+    const updatedTeamA = match.teamA?.id !== 'bye' && teamsMap[match.teamA?.id] 
       ? { ...teamsMap[match.teamA.id] } 
       : match.teamA;
     
-    const updatedTeamB = match.teamB.id !== 'bye' && teamsMap[match.teamB.id] 
+    const updatedTeamB = match.teamB?.id !== 'bye' && teamsMap[match.teamB?.id] 
       ? { ...teamsMap[match.teamB.id] } 
       : match.teamB;
     

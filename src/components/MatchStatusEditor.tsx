@@ -27,6 +27,9 @@ export default function MatchStatusEditor({
   onSetWinner,
   disabled = false 
 }: MatchStatusEditorProps) {
+  console.log("Rendering MatchStatusEditor for match:", match.id);
+  console.log("Team A:", match.teamA?.name, "Team B:", match.teamB?.name);
+  
   const {
     status,
     scoreA,
@@ -53,6 +56,8 @@ export default function MatchStatusEditor({
     onSetWinner
   });
 
+  console.log("Match status:", status, "Show dialog:", showResultDialog);
+
   return (
     <div className="space-y-4">
       <MatchStatusSelector 
@@ -71,12 +76,14 @@ export default function MatchStatusEditor({
         teamBLives={teamBLives}
         winner={winner}
         onScoreAChange={(value) => {
+          console.log("Setting score A to:", value);
           setScoreA(value);
           if (onUpdateScore) {
             onUpdateScore(match.id, 'A', value);
           }
         }}
         onScoreBChange={(value) => {
+          console.log("Setting score B to:", value);
           setScoreB(value);
           if (onUpdateScore) {
             onUpdateScore(match.id, 'B', value);

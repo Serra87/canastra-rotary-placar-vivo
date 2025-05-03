@@ -49,6 +49,10 @@ export const MatchResultDialog: React.FC<MatchResultDialogProps> = ({
   onConfirmResult,
   disabled = false
 }) => {
+  console.log("Rendering ResultDialog, open:", open);
+  console.log("Team A:", match.teamA?.id, match.teamA?.name);
+  console.log("Team B:", match.teamB?.id, match.teamB?.name);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
