@@ -1,4 +1,3 @@
-
 import { Match } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamCard from "./TeamCard";
@@ -28,6 +27,22 @@ export const TournamentBracket = ({ matches }: TournamentBracketProps) => {
     const bNum = parseInt(b.replace(/\D/g, '')) || 0; // Add fallback to 0 if NaN
     return aNum - bNum;
   });
+
+  // If there are no rounds, show a placeholder message
+  if (rounds.length === 0) {
+    return (
+      <Card className="w-full shadow-lg border-t-4 border-t-rotary-blue">
+        <CardHeader className="bg-slate-50">
+          <CardTitle className="text-rotary-navy text-center text-xl">Chave do Torneio</CardTitle>
+        </CardHeader>
+        <CardContent className="p-8 text-center">
+          <p className="text-gray-500">
+            Nenhuma rodada foi configurada ainda. Crie times e partidas no painel administrativo.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-rotary-blue">
