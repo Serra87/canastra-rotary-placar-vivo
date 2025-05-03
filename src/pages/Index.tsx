@@ -11,6 +11,20 @@ const Index = () => {
   // Usar o contexto global em vez dos dados mock estáticos
   const { tournament, rankedTeams } = useTournament();
   
+  // Função auxiliar para formatar a data de maneira segura
+  const formatDate = (dateValue: Date | string) => {
+    if (!dateValue) return "";
+    
+    try {
+      // Se for uma string, tenta converter para Date
+      const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return "";
+    }
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -26,7 +40,7 @@ const Index = () => {
                 {tournament.currentRound}
               </Badge>
               <span className="text-sm text-gray-600">
-                {tournament.date.toLocaleDateString('pt-BR')}
+                {formatDate(tournament.date)}
               </span>
             </div>
           </div>

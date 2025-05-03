@@ -15,13 +15,26 @@ const TournamentContext = createContext<TournamentContextType | undefined>(undef
 
 // Provedor do contexto
 export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tournament, setTournament] = useState<Tournament>(mockTournament);
-  const [rankedTeams, setRankedTeams] = useState(getRankedTeams(mockTournament));
+  const [tournament, setTournament] = useState<Tournament>(() => {
+    // Assegura que a data é um objeto Date válido durante a inicialização
+    return {
+      ...mockTournament,
+      date: mockTournament.date instanceof Date ? 
+        mockTournament.date : 
+        new Date(mockTournament.date)
+    };
+  });
+  const [rankedTeams, setRankedTeams] = useState(getRankedTeams(tournament));
 
   // Função para atualizar o torneio
   const updateTournament = (updatedTournament: Tournament) => {
     // Criar uma cópia profunda para evitar problemas de referência
     const tournamentCopy = JSON.parse(JSON.stringify(updatedTournament));
+    
+    // Assegura que a data é um objeto Date válido após a deserialização
+    tournamentCopy.date = tournamentCopy.date instanceof Date ? 
+      tournamentCopy.date : 
+      new Date(tournamentCopy.date);
     
     // Garantir que as equipes tenham limites de vidas corretos
     if (tournamentCopy.teams) {
