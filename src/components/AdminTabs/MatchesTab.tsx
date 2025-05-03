@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Match, Team, Tournament } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,7 +73,36 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
   const [matchToEditStatus, setMatchToEditStatus] = useState<Match | null>(null);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   
-  // Create a new round with matches
+  // Helper function to detect winners and losers from previous round
+  const getPreviousRoundResults = (nextRoundNumber: number) => {
+    if (nextRoundNumber <= 1) return { winners: [], losers: [] };
+    
+    // Get the previous round name
+    const previousRoundName = `RODADA ${nextRoundNumber - 1}`;
+    
+    // Get matches from previous round
+    const previousRoundMatches = matchesByRound[previousRoundName] || [];
+    
+    // Extract winners and losers
+    const winners: Team[] = [];
+    const losers: Team[] = [];
+    
+    previousRoundMatches.forEach(match => {
+      if (match.completed && match.winner) {
+        winners.push(match.winner);
+        
+        // Get loser (the team that didn't win)
+        const loser = match.teamA.id === match.winner.id ? match.teamB : match.teamA;
+        if (loser.id !== 'bye') {  // Ignore "bye" teams
+          losers.push(loser);
+        }
+      }
+    });
+    
+    return { winners, losers };
+  };
+  
+  // Create a new round with matches based on previous results
   const createNewRound = () => {
     // Calculate the actual next round number by getting the max existing round number + 1
     let maxExistingRoundNumber = 0;
@@ -104,46 +132,108 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       return;
     }
 
+    // Get winners and losers from previous round
+    const { winners, losers } = getPreviousRoundResults(nextRoundNumber);
+    
     // Create matches for the next round
     const newMatches: Match[] = [];
     
-    // Pair teams for matches
-    for (let i = 0; i < teamsAdvancing.length; i += 2) {
-      if (i + 1 < teamsAdvancing.length) {
-        newMatches.push({
-          id: `match-${nextRoundNumber}-${i/2+1}`,
-          teamA: teamsAdvancing[i],
-          teamB: teamsAdvancing[i+1],
-          scoreA: 0,
-          scoreB: 0,
-          round: `RODADA ${nextRoundNumber}`,
-          completed: false,
-          inProgress: false,
-          tableNumber: undefined
-        });
-      } else {
-        // Odd number of teams, this team gets a bye
-        newMatches.push({
-          id: `match-${nextRoundNumber}-${i/2+1}`,
-          teamA: teamsAdvancing[i],
-          teamB: {
-            id: 'bye',
-            name: 'Bye',
-            players: ['', ''] as [string, string],
-            sponsor: { id: '', name: '' },
-            eliminated: false,
-            totalPoints: 0,
-            lives: 0,
-            reEntered: false
-          },
-          scoreA: 0,
-          scoreB: 0,
-          round: `RODADA ${nextRoundNumber}`,
-          completed: false,
-          inProgress: false,
-          tableNumber: undefined
-        });
-      }
+    // Create matches pairing winners with winners when possible
+    let remainingWinners = [...winners];
+    let remainingLosers = [...losers];
+    
+    // Separating teams that are not in winners or losers list
+    const otherTeams = teamsAdvancing.filter(team => 
+      !winners.find(w => w.id === team.id) && 
+      !losers.find(l => l.id === team.id)
+    );
+    
+    console.log("Next round:", nextRoundNumber);
+    console.log("Winners:", winners.map(w => w.name));
+    console.log("Losers:", losers.map(l => l.name));
+    console.log("Other teams:", otherTeams.map(t => t.name));
+    
+    // First, pair up winners with winners
+    while (remainingWinners.length >= 2) {
+      const teamA = remainingWinners.shift()!;
+      const teamB = remainingWinners.shift()!;
+      
+      newMatches.push({
+        id: `match-${nextRoundNumber}-${newMatches.length+1}`,
+        teamA,
+        teamB,
+        scoreA: 0,
+        scoreB: 0,
+        round: `RODADA ${nextRoundNumber}`,
+        completed: false,
+        inProgress: false,
+        tableNumber: undefined
+      });
+    }
+    
+    // Then, pair up losers with losers
+    while (remainingLosers.length >= 2) {
+      const teamA = remainingLosers.shift()!;
+      const teamB = remainingLosers.shift()!;
+      
+      newMatches.push({
+        id: `match-${nextRoundNumber}-${newMatches.length+1}`,
+        teamA,
+        teamB,
+        scoreA: 0,
+        scoreB: 0,
+        round: `RODADA ${nextRoundNumber}`,
+        completed: false,
+        inProgress: false,
+        tableNumber: undefined
+      });
+    }
+    
+    // Combine any remaining winners, losers, and other teams
+    const remainingTeams = [...remainingWinners, ...remainingLosers, ...otherTeams];
+    
+    // Pair the remaining teams
+    while (remainingTeams.length >= 2) {
+      const teamA = remainingTeams.shift()!;
+      const teamB = remainingTeams.shift()!;
+      
+      newMatches.push({
+        id: `match-${nextRoundNumber}-${newMatches.length+1}`,
+        teamA,
+        teamB,
+        scoreA: 0,
+        scoreB: 0,
+        round: `RODADA ${nextRoundNumber}`,
+        completed: false,
+        inProgress: false,
+        tableNumber: undefined
+      });
+    }
+    
+    // If there's one team left, give it a bye
+    if (remainingTeams.length === 1) {
+      const teamA = remainingTeams[0];
+      
+      newMatches.push({
+        id: `match-${nextRoundNumber}-${newMatches.length+1}`,
+        teamA,
+        teamB: {
+          id: 'bye',
+          name: 'Bye',
+          players: ['', ''] as [string, string],
+          sponsor: { id: '', name: '' },
+          eliminated: false,
+          totalPoints: 0,
+          lives: 0,
+          reEntered: false
+        },
+        scoreA: 0,
+        scoreB: 0,
+        round: `RODADA ${nextRoundNumber}`,
+        completed: false,
+        inProgress: false,
+        tableNumber: undefined
+      });
     }
 
     // Update state
@@ -300,6 +390,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
               ))}
             </TabsList>
             
+            {/* Keep existing table structure and match rendering */}
             {rounds.map(round => (
               <TabsContent key={round} value={round}>
                 {/* Round header with delete button */}
