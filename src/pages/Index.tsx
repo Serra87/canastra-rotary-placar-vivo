@@ -7,11 +7,13 @@ import ScoreboardLive from "@/components/ScoreboardLive";
 import { Badge } from "@/components/ui/badge";
 import { useTournament } from "@/context/TournamentContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, TrophyIcon } from "lucide-react";
+import { CalendarIcon, TrophyIcon, Loader2 } from "lucide-react";
+import Dashboard from "@/components/Dashboard";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const Index = () => {
   // Usar o contexto global em vez dos dados mock estáticos
-  const { tournament, rankedTeams } = useTournament();
+  const { tournament, rankedTeams, loading } = useTournament();
   
   // Função auxiliar para formatar a data de maneira segura
   const formatDate = (dateValue: Date | string) => {
@@ -51,32 +53,36 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="space-y-8">
-            {isTournamentEmpty ? (
-              <Card className="text-center py-12 bg-slate-50">
-                <CardContent className="flex flex-col items-center justify-center">
-                  <TrophyIcon size={64} className="text-gray-300 mb-4" />
-                  <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                    Torneio Novo
-                  </h2>
-                  <p className="text-gray-500 text-lg max-w-lg mx-auto">
-                    Ainda não há times ou partidas cadastradas. Acesse o painel administrativo para iniciar o torneio.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : tournament.matches.length === 0 ? (
-              <div className="text-center py-10 bg-gray-50 rounded-lg">
-                <p className="text-gray-500 text-lg">Nenhuma partida encontrada. O torneio ainda não foi iniciado.</p>
-              </div>
-            ) : (
-              <>
-                <ScoreboardLive tournament={tournament} />
-                <TournamentBracket matches={tournament.matches} />
-              </>
-            )}
-            
-            <ScoreboardTable teams={rankedTeams} />
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-12 w-12 animate-spin text-rotary-blue" />
+              <span className="ml-3 text-lg text-gray-700">Carregando dados do torneio...</span>
+            </div>
+          ) : (
+            <ErrorBoundary>
+              {isTournamentEmpty ? (
+                <Card className="text-center py-12 bg-slate-50">
+                  <CardContent className="flex flex-col items-center justify-center">
+                    <TrophyIcon size={64} className="text-gray-300 mb-4" />
+                    <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+                      Torneio Novo
+                    </h2>
+                    <p className="text-gray-500 text-lg max-w-lg mx-auto">
+                      Ainda não há times ou partidas cadastradas. Acesse o painel administrativo para iniciar o torneio.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <Dashboard />
+                  <ScoreboardLive tournament={tournament} />
+                  <TournamentBracket matches={tournament.matches} />
+                </>
+              )}
+              
+              <ScoreboardTable teams={rankedTeams} />
+            </ErrorBoundary>
+          )}
         </div>
       </main>
       

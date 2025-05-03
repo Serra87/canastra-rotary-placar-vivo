@@ -414,7 +414,7 @@ export const useSupabaseTournament = () => {
               eliminated: team.eliminated,
               total_points: team.totalPoints,
               lives: team.lives,
-              reEntered: team.reEntered,
+              reentered: team.reEntered, // Match our app's reEntered to database's reentered
               updated_at: new Date().toISOString()
             })
             .eq('id', supabaseTeamId);

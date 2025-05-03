@@ -1,8 +1,13 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Tournament } from "@/lib/types";
 import { mockTournament, getRankedTeams } from "@/lib/mockData";
 import { useSupabaseTournament } from "@/hooks/useSupabaseTournament";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useTournamentCache } from "@/hooks/useTournamentCache";
+import { useOptimisticUpdate } from "@/hooks/useOptimisticUpdate";
+import { useTournamentStats } from "@/hooks/useTournamentStats";
 
 // Constante para o storage key (mantida como fallback)
 const TOURNAMENT_STORAGE_KEY = "rotary-tournament";
@@ -14,6 +19,9 @@ interface TournamentContextType {
   rankedTeams: ReturnType<typeof getRankedTeams>;
   resetTournament: () => void;
   loading: boolean;
+  isUpdating: boolean;
+  error: Error | null;
+  stats: ReturnType<typeof useTournamentStats>;
 }
 
 // Criar o contexto
@@ -59,7 +67,7 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   const { 
     tournament: supabaseTournament, 
     loading, 
-    error, 
+    error: supabaseError, 
     createTournament, 
     updateTournament: updateSupabaseTournament,
     resetTournament: resetSupabaseTournament
@@ -68,26 +76,61 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
   // Inicializar com dados do localStorage ou mock como fallback
   const [tournament, setTournament] = useState<Tournament>(loadSavedTournament);
   const [rankedTeams, setRankedTeams] = useState(getRankedTeams(tournament));
-  const { toast } = useToast();
+  const [error, setError] = useState<Error | null>(null);
+  
+  // Usar o hook de estatísticas
+  const stats = useTournamentStats(tournament);
+  
+  // Usar cache para o torneio
+  const { cachedTournament, clearCache } = useTournamentCache(supabaseTournament, {
+    onError: (err) => console.error("Cache error:", err)
+  });
+  
+  // Usar atualizações otimistas
+  const { isUpdating, update: optimisticUpdate } = useOptimisticUpdate<Tournament>({
+    onUpdate: async (updatedTournament) => {
+      if (updatedTournament.id) {
+        return await updateSupabaseTournament(updatedTournament);
+      } else {
+        return await createTournament(updatedTournament);
+      }
+    },
+    onError: (err, originalData) => {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      // Reverter para os dados originais em caso de erro
+      setTournament(originalData);
+      toast({
+        title: "Erro ao salvar alterações",
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+        variant: "destructive"
+      });
+    }
+  });
   
   // Quando o torneio do Supabase é carregado, atualiza o state local
   useEffect(() => {
     if (supabaseTournament) {
       setTournament(supabaseTournament);
       setRankedTeams(getRankedTeams(supabaseTournament));
+      clearCache(); // Limpar o cache após carregar dados reais do servidor
+    } else if (!loading && cachedTournament) {
+      // Se não há dados do Supabase e não está carregando, use o cache
+      setTournament(cachedTournament);
+      setRankedTeams(getRankedTeams(cachedTournament));
     }
-  }, [supabaseTournament]);
+  }, [supabaseTournament, loading, cachedTournament]);
 
   // Efeito para exibir erros de carregamento
   useEffect(() => {
-    if (error) {
+    if (supabaseError) {
+      setError(supabaseError);
       toast({
         title: "Erro no banco de dados",
-        description: error.message,
+        description: supabaseError.message,
         variant: "destructive"
       });
     }
-  }, [error, toast]);
+  }, [supabaseError]);
 
   // Função para atualizar o torneio
   const updateTournament = async (updatedTournament: Tournament) => {
@@ -166,7 +209,7 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
       // Executa a verificação, mas não bloqueia a atualização - apenas registra avisos
       checkTeamsInSameRound();
       
-      // Atualiza o estado local do torneio
+      // Atualiza o estado local do torneio otimisticamente
       setTournament(tournamentCopy);
       
       // Atualiza o ranking de equipes
@@ -180,18 +223,14 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
         console.error("Erro ao salvar torneio no localStorage:", error);
       }
 
-      // Salva no Supabase
-      if (tournamentCopy.id) {
-        // Se já existe um ID, atualiza
-        await updateSupabaseTournament(tournamentCopy);
-      } else {
-        // Se não tem ID, cria novo
-        await createTournament(tournamentCopy);
-      }
+      // Inicia a atualização otimista no servidor
+      const originalTournament = tournament; // Preserva o estado original em caso de erro
+      await optimisticUpdate(tournamentCopy, originalTournament);
       
       console.log("Torneio atualizado e sincronizado com o banco de dados", tournamentCopy);
     } catch (error) {
       console.error("Erro ao atualizar torneio:", error);
+      setError(error instanceof Error ? error : new Error(String(error)));
       toast({
         title: "Erro ao salvar",
         description: "Não foi possível salvar as alterações no banco de dados.",
@@ -224,8 +263,18 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
         
         console.log("Torneio resetado com sucesso", resetTournamentData);
       }
+      
+      // Limpar cache
+      clearCache();
+      
+      // Mostra confirmação de sucesso
+      toast({
+        title: "Torneio resetado com sucesso",
+        description: "Todos os times e rodadas foram removidos",
+      });
     } catch (error) {
       console.error("Erro ao resetar torneio:", error);
+      setError(error instanceof Error ? error : new Error(String(error)));
       toast({
         title: "Erro ao resetar",
         description: "Não foi possível resetar o torneio no banco de dados.",
@@ -240,7 +289,10 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
       updateTournament, 
       rankedTeams, 
       resetTournament,
-      loading 
+      loading,
+      isUpdating,
+      error,
+      stats
     }}>
       {children}
     </TournamentContext.Provider>

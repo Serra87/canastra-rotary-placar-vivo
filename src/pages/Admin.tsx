@@ -5,7 +5,7 @@ import AdminPanel from "@/components/AdminPanel";
 import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,11 +17,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const Admin = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   // Usando o contexto global em vez do estado local
-  const { tournament, updateTournament, resetTournament } = useTournament();
+  const { tournament, updateTournament, resetTournament, loading, isUpdating } = useTournament();
 
   const handleReset = () => {
     resetTournament();
@@ -52,16 +54,24 @@ const Admin = () => {
               variant="destructive" 
               onClick={() => setIsResetDialogOpen(true)}
               className="flex items-center gap-2"
+              disabled={loading || isUpdating}
             >
-              <Trash2 size={18} />
+              {isUpdating ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Trash2 size={18} />
+              )}
               Resetar Torneio
             </Button>
           </div>
           
-          <AdminPanel 
-            tournament={tournament} 
-            onUpdateTournament={updateTournament}
-          />
+          <ErrorBoundary>
+            <AdminPanel 
+              tournament={tournament} 
+              onUpdateTournament={updateTournament}
+              loading={loading}
+            />
+          </ErrorBoundary>
         </div>
       </main>
       
@@ -88,6 +98,9 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Loading overlay for major operations */}
+      <LoadingOverlay show={isUpdating} message="Salvando alterações..." transparent />
     </div>
   );
 };
