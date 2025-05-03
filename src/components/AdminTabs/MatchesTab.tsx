@@ -139,6 +139,9 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     // Create matches for the next round
     const newMatches: Match[] = [];
     
+    // Create a Set to track teams that have already been assigned to matches
+    const assignedTeams = new Set<string>();
+    
     // Create matches pairing winners with winners when possible
     let remainingWinners = [...winners];
     let remainingLosers = [...losers];
@@ -158,6 +161,15 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     while (remainingWinners.length >= 2) {
       const teamA = remainingWinners.shift()!;
       const teamB = remainingWinners.shift()!;
+      
+      // Skip if either team has already been assigned
+      if (assignedTeams.has(teamA.id) || assignedTeams.has(teamB.id)) {
+        continue;
+      }
+      
+      // Mark teams as assigned
+      assignedTeams.add(teamA.id);
+      assignedTeams.add(teamB.id);
       
       // Important: Use deep copies of the team objects to preserve the current state
       const teamACopy = JSON.parse(JSON.stringify(teamA));
@@ -181,6 +193,15 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
       const teamA = remainingLosers.shift()!;
       const teamB = remainingLosers.shift()!;
       
+      // Skip if either team has already been assigned
+      if (assignedTeams.has(teamA.id) || assignedTeams.has(teamB.id)) {
+        continue;
+      }
+      
+      // Mark teams as assigned
+      assignedTeams.add(teamA.id);
+      assignedTeams.add(teamB.id);
+      
       // Important: Use deep copies of the team objects to preserve the current state
       const teamACopy = JSON.parse(JSON.stringify(teamA));
       const teamBCopy = JSON.parse(JSON.stringify(teamB));
@@ -199,12 +220,25 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
     }
     
     // Combine any remaining winners, losers, and other teams
-    const remainingTeams = [...remainingWinners, ...remainingLosers, ...otherTeams];
+    const remainingTeams = [
+      ...remainingWinners.filter(team => !assignedTeams.has(team.id)),
+      ...remainingLosers.filter(team => !assignedTeams.has(team.id)),
+      ...otherTeams.filter(team => !assignedTeams.has(team.id))
+    ];
     
     // Pair the remaining teams
     while (remainingTeams.length >= 2) {
       const teamA = remainingTeams.shift()!;
       const teamB = remainingTeams.shift()!;
+      
+      // Skip if either team has already been assigned
+      if (assignedTeams.has(teamA.id) || assignedTeams.has(teamB.id)) {
+        continue;
+      }
+      
+      // Mark teams as assigned
+      assignedTeams.add(teamA.id);
+      assignedTeams.add(teamB.id);
       
       // Important: Use deep copies of the team objects to preserve the current state
       const teamACopy = JSON.parse(JSON.stringify(teamA));
@@ -385,7 +419,8 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament 
               <ManualMatchCreator 
                 teams={teams} 
                 roundNumber={currentRoundNumber}
-                onCreateMatch={handleAddManualMatch} 
+                onCreateMatch={handleAddManualMatch}
+                existingMatches={matches} // Pass all matches to check for team availability
               />
               <Button onClick={createNewRound}>
                 Criar Nova Rodada

@@ -24,14 +24,29 @@ interface ManualMatchCreatorProps {
   teams: Team[];
   onCreateMatch: (match: Match) => void;
   roundNumber: number;
+  existingMatches: Match[]; // Add this to check for teams already playing in the round
 }
 
-export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: ManualMatchCreatorProps) => {
+export const ManualMatchCreator = ({ 
+  teams, 
+  onCreateMatch, 
+  roundNumber, 
+  existingMatches 
+}: ManualMatchCreatorProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [teamAId, setTeamAId] = useState<string | undefined>(undefined);
   const [teamBId, setTeamBId] = useState<string | undefined>(undefined);
   const [tableNumber, setTableNumber] = useState<string>("");
+
+  // Find teams already playing in this round
+  const teamsAlreadyPlayingIds = new Set<string>();
+  existingMatches.forEach(match => {
+    if (match.round === `${roundNumber}` || match.round === `RODADA ${roundNumber}`) {
+      teamsAlreadyPlayingIds.add(match.teamA.id);
+      teamsAlreadyPlayingIds.add(match.teamB.id);
+    }
+  });
 
   const handleCreate = () => {
     if (!teamAId || !teamBId) return;
@@ -44,6 +59,16 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
         title: "Erro ao criar partida", 
         description: "Selecione duas equipes diferentes",
         variant: "destructive" 
+      });
+      return;
+    }
+
+    // Check if either team is already playing in this round
+    if (teamsAlreadyPlayingIds.has(teamAId) || teamsAlreadyPlayingIds.has(teamBId)) {
+      toast({
+        title: "Erro ao criar partida",
+        description: "Uma ou ambas as equipes já estão jogando nesta rodada",
+        variant: "destructive"
       });
       return;
     }
@@ -75,8 +100,11 @@ export const ManualMatchCreator = ({ teams, onCreateMatch, roundNumber }: Manual
 
   // Filter teams to only include those that have at least 1 life 
   // OR have been re-entered, even if marked as eliminated
+  // AND are not already playing in this round
   const availableTeams = teams.filter(team => 
-    (team.lives > 0 || team.reEntered) && !team.eliminated
+    (team.lives > 0 || team.reEntered) && 
+    !team.eliminated &&
+    !teamsAlreadyPlayingIds.has(team.id)
   );
 
   return (

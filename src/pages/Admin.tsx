@@ -53,6 +53,37 @@ const Admin = () => {
       });
     }
     
+    // Check for teams that are in multiple matches within the same round
+    const checkTeamsInSameRound = () => {
+      const matchesByRound: Record<string, string[]> = {};
+      
+      tournamentCopy.matches.forEach(match => {
+        if (!match.round) return;
+        
+        const roundKey = match.round.startsWith("RODADA") ? match.round : `RODADA ${match.round}`;
+        if (!matchesByRound[roundKey]) {
+          matchesByRound[roundKey] = [];
+        }
+        
+        matchesByRound[roundKey].push(match.teamA.id, match.teamB.id);
+      });
+      
+      // Check each round for duplicate teams
+      let hasDuplicates = false;
+      Object.entries(matchesByRound).forEach(([round, teamIds]) => {
+        const uniqueTeamIds = new Set(teamIds);
+        if (uniqueTeamIds.size < teamIds.length) {
+          console.warn(`AVISO: Há equipes jogando múltiplas partidas na ${round}`);
+          hasDuplicates = true;
+        }
+      });
+      
+      return hasDuplicates;
+    };
+    
+    // Run the check but don't block the update - just log warnings
+    checkTeamsInSameRound();
+    
     setTournament(tournamentCopy);
     
     // Here we could add logic to persist changes or sync with backend
