@@ -59,7 +59,6 @@ export const AdminPanel = ({ tournament, onUpdateTournament, loading = false }: 
           <MatchesTab 
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
-            loading={loading}
           />
         </TabsContent>
         

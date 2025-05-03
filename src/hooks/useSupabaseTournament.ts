@@ -26,7 +26,7 @@ export interface SupabaseTeam {
   eliminated: boolean;
   total_points: number;
   lives: number;
-  reEntered: boolean;
+  reentered: boolean; // Changed from reEntered to reentered to match database column
   created_at?: string;
   updated_at?: string;
 }
@@ -90,7 +90,7 @@ export const teamToSupabase = (team: Team, tournamentId: string): Omit<SupabaseT
     eliminated: team.eliminated,
     total_points: team.totalPoints,
     lives: team.lives,
-    reEntered: team.reEntered
+    reentered: team.reEntered // Match our app's reEntered to database's reentered
   };
 };
 
@@ -103,7 +103,7 @@ export const supabaseToTeam = (team: SupabaseTeam): Team => {
     eliminated: team.eliminated,
     totalPoints: team.total_points,
     lives: team.lives,
-    reEntered: team.reEntered
+    reEntered: team.reentered // Match database's reentered to our app's reEntered
   };
 };
 
