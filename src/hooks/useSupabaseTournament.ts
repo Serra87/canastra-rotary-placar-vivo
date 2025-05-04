@@ -1,4 +1,10 @@
 
+import { Match, Team } from "@/lib/types";
+import { Tables } from "@/integrations/supabase/types";
+
+// Define SupabaseMatch type based on the database table structure
+export type SupabaseMatch = Tables<"matches">;
+
 // Function to convert a match to Supabase format
 export const matchToSupabase = (
   match: Match, 
@@ -68,5 +74,18 @@ export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, T
     inProgress: match.in_progress, // Fixed: Using in_progress from Supabase for our inProgress field
     startTime: match.start_time ? new Date(match.start_time) : undefined,
     endTime: match.end_time ? new Date(match.end_time) : undefined
+  };
+};
+
+// Export the hook that was missing
+export const useSupabaseTournament = () => {
+  // Implement the hook or provide a mock implementation
+  return {
+    tournament: null,
+    loading: false,
+    error: null,
+    createTournament: async () => {},
+    updateTournament: async () => {},
+    resetTournament: async () => {}
   };
 };

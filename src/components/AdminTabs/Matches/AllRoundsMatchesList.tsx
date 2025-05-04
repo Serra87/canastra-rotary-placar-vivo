@@ -14,6 +14,7 @@ interface AllRoundsMatchesListProps {
   onCompleteMatch: (matchId: string) => void;
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
+  disabled?: boolean; // Add the disabled prop that was missing
 }
 
 const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
@@ -27,6 +28,7 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
   onCompleteMatch,
   onSetWinner,
   onDeleteMatch,
+  disabled = false // Add the default value
 }) => {
   if (rounds.length === 0) {
     return (
@@ -62,7 +64,7 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
               onCompleteMatch={() => onCompleteMatch(match.id)}
               onSetWinner={onSetWinner}
               onDeleteMatch={() => onDeleteMatch(match.id)}
-              disabled={round !== currentRound}
+              disabled={disabled || round !== currentRound}
             />
           ))}
         </div>

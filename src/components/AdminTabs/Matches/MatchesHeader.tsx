@@ -12,6 +12,7 @@ interface MatchesHeaderProps {
   onAddMatch: (match: Match) => void;
   onNextRound: () => void;
   hasIncompleteMatches: boolean;
+  disabled?: boolean; // Add the disabled prop
 }
 
 const MatchesHeader: React.FC<MatchesHeaderProps> = ({
@@ -22,6 +23,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({
   onAddMatch,
   onNextRound,
   hasIncompleteMatches,
+  disabled = false, // Add default value
 }) => {
   return (
     <div className="flex justify-between items-center">
@@ -33,10 +35,11 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({
           existingMatches={existingMatches}
           onCreateMatch={onAddMatch}
           currentRound={currentRound}
+          disabled={disabled}
         />
         <Button
           onClick={onNextRound}
-          disabled={hasIncompleteMatches}
+          disabled={hasIncompleteMatches || disabled}
           title={hasIncompleteMatches ? "Finalize todas as partidas da rodada atual antes de avançar" : ""}
         >
           Próxima Rodada
