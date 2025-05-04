@@ -200,7 +200,7 @@ export const useSupabaseTournament = () => {
       setLoading(true);
       
       // Create tournament record
-      const tournamentData = {
+      const tournamentToCreate = {
         name: newTournament.name,
         date: newTournament.date.toISOString(),
         location: newTournament.location,
@@ -212,7 +212,7 @@ export const useSupabaseTournament = () => {
 
       const { data: createdTournament, error: tournamentError } = await supabase
         .from("tournaments")
-        .insert(tournamentData)
+        .insert(tournamentToCreate)
         .select()
         .single();
 
@@ -266,13 +266,13 @@ export const useSupabaseTournament = () => {
 
       // Fetch the complete tournament data with teams and matches
       // This is to ensure we have all the newly created data with their IDs
-      const { data: tournamentData, error: fetchError } = await supabase
+      const { data: fetchedTournament, error: fetchError } = await supabase
         .from("tournaments")
         .select("*")
         .eq("id", tournamentId)
         .single();
 
-      if (fetchError || !tournamentData) {
+      if (fetchError || !fetchedTournament) {
         console.error("Error fetching created tournament:", fetchError);
         setLoading(false);
         return true; // Still return true as we did create the tournament
@@ -295,7 +295,7 @@ export const useSupabaseTournament = () => {
       const matches = matchesData?.map(m => supabaseToMatch(m, teams)) || [];
 
       // Create full tournament object
-      const fullTournament = supabaseToTournament(tournamentData, teams, matches);
+      const fullTournament = supabaseToTournament(fetchedTournament, teams, matches);
       
       setTournament(fullTournament);
       setLoading(false);
@@ -323,7 +323,7 @@ export const useSupabaseTournament = () => {
       setLoading(true);
       
       // Update tournament record
-      const tournamentData = {
+      const tournamentToUpdate = {
         name: updatedTournament.name,
         date: updatedTournament.date.toISOString(),
         location: updatedTournament.location,
@@ -335,7 +335,7 @@ export const useSupabaseTournament = () => {
 
       const { error: tournamentError } = await supabase
         .from("tournaments")
-        .update(tournamentData)
+        .update(tournamentToUpdate)
         .eq("id", updatedTournament.id);
 
       if (tournamentError) {
@@ -396,7 +396,7 @@ export const useSupabaseTournament = () => {
       }
 
       // Fetch updated tournament data to return
-      const { data: refreshedTournamentData, error: refreshError } = await supabase
+      const { data: refreshedTournament, error: refreshError } = await supabase
         .from("tournaments")
         .select("*")
         .eq("id", tournamentId)
@@ -425,7 +425,7 @@ export const useSupabaseTournament = () => {
       const matches = matchesData?.map(m => supabaseToMatch(m, teams)) || [];
 
       // Create full tournament object
-      const fullTournament = supabaseToTournament(refreshedTournamentData, teams, matches);
+      const fullTournament = supabaseToTournament(refreshedTournament, teams, matches);
       
       setTournament(fullTournament);
       setLoading(false);
