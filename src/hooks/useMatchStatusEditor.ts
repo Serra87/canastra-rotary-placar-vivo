@@ -40,7 +40,6 @@ export function useMatchStatusEditor({
 
   // Update state when match properties change
   useEffect(() => {
-    console.log("Match updated in useMatchStatusEditor:", match.id);
     setStatus(match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando");
     setScoreA(match.scoreA || 0);
     setScoreB(match.scoreB || 0);
@@ -54,15 +53,9 @@ export function useMatchStatusEditor({
     if (match.teamB) {
       setTeamBLives(typeof match.teamB.lives === 'number' ? match.teamB.lives : 0);
     }
-    
-    // Debug logs to help identify issues
-    console.log("Teams available:", teams.length);
-    console.log("Match teamA:", match.teamA?.id, match.teamA?.name, "lives:", match.teamA?.lives);
-    console.log("Match teamB:", match.teamB?.id, match.teamB?.name, "lives:", match.teamB?.lives);
   }, [match, teams]);
 
   const handleStatusChange = (value: string) => {
-    console.log("Status changed to:", value);
     setStatus(value);
     
     // Update match status based on selection
@@ -96,9 +89,7 @@ export function useMatchStatusEditor({
         description: "Partida iniciada" 
       });
     } else if (value === "Finalizada") {
-      console.log("Opening result dialog - current value of showResultDialog:", showResultDialog);
       setShowResultDialog(true);
-      console.log("After setShowResultDialog(true):", showResultDialog);
       
       if (onCompleteMatch) {
         onCompleteMatch();
@@ -112,13 +103,11 @@ export function useMatchStatusEditor({
       const newLives = increment 
         ? Math.min((match.teamA?.reEntered ? 1 : 2), teamALives + 1) 
         : Math.max(0, teamALives - 1);
-      console.log(`Updating team A lives from ${teamALives} to ${newLives}`);
       setTeamALives(newLives);
     } else {
       const newLives = increment 
         ? Math.min((match.teamB?.reEntered ? 1 : 2), teamBLives + 1) 
         : Math.max(0, teamBLives - 1);
-      console.log(`Updating team B lives from ${teamBLives} to ${newLives}`);
       setTeamBLives(newLives);
     }
   };
@@ -134,12 +123,10 @@ export function useMatchStatusEditor({
     
     // Find the winning team reference
     const winningTeamId = winner;
-    console.log("Finding winning team with ID:", winningTeamId);
     const winningTeam = teams.find((t) => t.id === winningTeamId);
     
     if (!winningTeam) {
       console.error("Winning team not found:", winningTeamId);
-      console.log("Available teams:", teams.map(t => `${t.id} - ${t.name}`).join(", "));
       toast({ 
         title: "Erro ao definir vencedor", 
         description: "Time vencedor não encontrado",
@@ -147,8 +134,6 @@ export function useMatchStatusEditor({
       });
       return;
     }
-
-    console.log("Confirming result with winner:", winningTeam.name);
     
     // Update both teams with manually adjusted lives
     let updatedTeams = teams.map((t) => {
@@ -188,7 +173,6 @@ export function useMatchStatusEditor({
     };
 
     if (onSave) {
-      console.log("Saving updated match:", updatedMatch);
       onSave(updatedMatch, updatedTeams);
     }
 
