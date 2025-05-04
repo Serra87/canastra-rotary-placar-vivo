@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Match, Team } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,6 +53,13 @@ export const MatchResultDialog: React.FC<MatchResultDialogProps> = ({
   console.log("Match in ResultDialog:", match.id);
   console.log("Team A:", match.teamA?.id, match.teamA?.name);
   console.log("Team B:", match.teamB?.id, match.teamB?.name);
+  
+  useEffect(() => {
+    if (open) {
+      console.log("Dialog opened - teamALives:", teamALives, "teamBLives:", teamBLives);
+      console.log("Full match object:", match);
+    }
+  }, [open, teamALives, teamBLives, match]);
   
   // Safety check for missing team data
   if (!match.teamA || !match.teamB) {

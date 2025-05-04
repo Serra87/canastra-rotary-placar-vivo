@@ -45,8 +45,15 @@ export function useMatchStatusEditor({
     setScoreA(match.scoreA || 0);
     setScoreB(match.scoreB || 0);
     setWinner(match.winner?.id);
-    setTeamALives(match.teamA?.lives || 0);
-    setTeamBLives(match.teamB?.lives || 0);
+    
+    // Make sure we have valid lives values from the teams
+    if (match.teamA) {
+      setTeamALives(typeof match.teamA.lives === 'number' ? match.teamA.lives : 0);
+    }
+    
+    if (match.teamB) {
+      setTeamBLives(typeof match.teamB.lives === 'number' ? match.teamB.lives : 0);
+    }
     
     // Debug logs to help identify issues
     console.log("Teams available:", teams.length);
@@ -89,8 +96,10 @@ export function useMatchStatusEditor({
         description: "Partida iniciada" 
       });
     } else if (value === "Finalizada") {
-      console.log("Opening result dialog");
+      console.log("Opening result dialog - current value of showResultDialog:", showResultDialog);
       setShowResultDialog(true);
+      console.log("After setShowResultDialog(true):", showResultDialog);
+      
       if (onCompleteMatch) {
         onCompleteMatch();
       }

@@ -15,6 +15,7 @@ interface MatchesTabContentProps {
   onCompleteMatch: (matchId: string) => void;
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
+  disabled?: boolean;
 }
 
 const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
@@ -26,7 +27,8 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
   onStartMatch,
   onCompleteMatch,
   onSetWinner,
-  onDeleteMatch
+  onDeleteMatch,
+  disabled = false
 }) => {
   const currentRoundMatches = matchesByRound[tournament.currentRound] || [];
   
@@ -52,6 +54,7 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
             onCompleteMatch={onCompleteMatch}
             onSetWinner={onSetWinner}
             onDeleteMatch={onDeleteMatch}
+            disabled={disabled}
           />
         </div>
       </TabsContent>
@@ -68,6 +71,7 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
           onCompleteMatch={onCompleteMatch}
           onSetWinner={onSetWinner}
           onDeleteMatch={onDeleteMatch}
+          disabled={disabled}
         />
       </TabsContent>
     </Tabs>

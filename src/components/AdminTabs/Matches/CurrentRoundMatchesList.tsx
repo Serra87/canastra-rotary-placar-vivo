@@ -12,6 +12,7 @@ interface CurrentRoundMatchesListProps {
   onCompleteMatch: (matchId: string) => void;
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
+  disabled?: boolean;
 }
 
 const CurrentRoundMatchesList: React.FC<CurrentRoundMatchesListProps> = ({
@@ -23,6 +24,7 @@ const CurrentRoundMatchesList: React.FC<CurrentRoundMatchesListProps> = ({
   onCompleteMatch,
   onSetWinner,
   onDeleteMatch,
+  disabled = false
 }) => {
   if (matches.length === 0) {
     return (
@@ -47,8 +49,9 @@ const CurrentRoundMatchesList: React.FC<CurrentRoundMatchesListProps> = ({
           onUpdateScore={(matchId, team, score) => onUpdateScore(matchId, team, score)}
           onStartMatch={() => onStartMatch(match.id)}
           onCompleteMatch={() => onCompleteMatch(match.id)}
-          onSetWinner={onSetWinner}
+          onSetWinner={(matchId, team) => onSetWinner(matchId, team)}
           onDeleteMatch={() => onDeleteMatch(match.id)}
+          disabled={disabled}
         />
       ))}
     </>
