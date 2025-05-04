@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tournament, Team } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
@@ -8,8 +7,8 @@ interface UseTournamentOperationsProps {
   tournament: Tournament;
   setTournament: (tournament: Tournament) => void;
   setRankedTeams: (teams: Tournament['teams']) => void;
-  optimisticUpdate: (updated: Tournament, original: Tournament) => Promise<boolean>;
-  resetSupabaseTournament: (id: string) => Promise<boolean>;
+  optimisticUpdate: (updated: Tournament, original: Tournament) => Promise<boolean | void>;
+  resetSupabaseTournament: () => Promise<boolean>; // Updated to match the signature in TournamentContext
   clearCache: () => void;
 }
 
@@ -106,7 +105,7 @@ export const useTournamentOperations = ({
       // Reset tournament in Supabase if it exists
       if (tournament.id) {
         console.log(`Resetando torneio no Supabase com ID: ${tournament.id}`);
-        const success = await resetSupabaseTournament(tournament.id);
+        const success = await resetSupabaseTournament();
         
         if (!success) {
           throw new Error("Falha ao resetar torneio no Supabase");

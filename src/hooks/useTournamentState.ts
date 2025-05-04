@@ -117,7 +117,7 @@ export const useTournamentState = () => {
     isUpdating,
     stats,
     optimisticUpdate,
-    resetSupabaseTournament,  // Now this has no arguments
+    resetSupabaseTournament,
     clearCache
   };
 };

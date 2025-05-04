@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Match, Team } from "@/lib/types";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,7 @@ interface ManualMatchCreatorProps {
   roundNumber?: number;
   existingMatches?: Match[]; // Add this to check for teams already playing in the round
   currentRound?: string;
-  disabled?: boolean; // Add the disabled prop
+  disabled?: boolean; // Added the disabled prop
 }
 
 export const ManualMatchCreator = ({ 
@@ -35,7 +34,7 @@ export const ManualMatchCreator = ({
   roundNumber = 1, 
   existingMatches = [],
   currentRound = "RODADA 1",
-  disabled = false // Add default value
+  disabled = false 
 }: ManualMatchCreatorProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);

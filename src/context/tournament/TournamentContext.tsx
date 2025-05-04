@@ -35,7 +35,7 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     setTournament,
     setRankedTeams,
     optimisticUpdate,
-    resetSupabaseTournament: async (id: string) => {
+    resetSupabaseTournament: async () => {
       // Ensure we return a boolean
       try {
         await resetSupabaseTournament();

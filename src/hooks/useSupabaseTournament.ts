@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Match, Team, Tournament } from "@/lib/types";
 import { Tables } from "@/integrations/supabase/types";
@@ -7,7 +8,8 @@ export type SupabaseMatch = Tables<"matches">;
 
 // Function to convert a match to Supabase format
 export const matchToSupabase = (
-  match: Match
+  match: Match,
+  tournamentId?: string
 ): Omit<SupabaseMatch, "id" | "created_at" | "updated_at"> => {
   return {
     team_a_id: match.teamA.id,
@@ -21,6 +23,7 @@ export const matchToSupabase = (
     in_progress: match.inProgress,
     start_time: match.startTime?.toISOString() || null,
     end_time: match.endTime?.toISOString() || null,
+    tournament_id: tournamentId || null, // Add the tournament_id field
   };
 };
 
@@ -61,19 +64,18 @@ export const useSupabaseTournament = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const createTournament = async (newTournament: Tournament) => {
+  const createTournament = async (newTournament: Tournament): Promise<boolean | void> => {
     console.log("Creating tournament:", newTournament);
-    return newTournament;
+    return true; // Return boolean instead of the Tournament
   };
 
-  const updateTournament = async (updatedTournament: Tournament) => {
+  const updateTournament = async (updatedTournament: Tournament): Promise<boolean | void> => {
     console.log("Updating tournament:", updatedTournament);
-    return updatedTournament;
+    return true; // Return boolean instead of the Tournament
   };
 
-  const resetTournament = async () => {
+  const resetTournament = async (): Promise<boolean> => {
     console.log("Resetting tournament");
-    // This doesn't take an id parameter now, but returns boolean
     return true;
   };
 
