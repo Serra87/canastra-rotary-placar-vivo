@@ -122,7 +122,7 @@ export const matchToSupabase = (
     round: match.round,
     table_number: match.tableNumber || null,
     completed: match.completed,
-    in_progress: match.inProgress,
+    in_progress: match.inProgress,  // Fixed: Using in_progress instead of inProgress for the Supabase format
     start_time: match.startTime ? match.startTime.toISOString() : null,
     end_time: match.endTime ? match.endTime.toISOString() : null
   };
@@ -172,7 +172,7 @@ export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, T
     round: match.round,
     tableNumber: match.table_number || undefined,
     completed: match.completed,
-    inProgress: match.inProgress,
+    inProgress: match.in_progress, // Fixed: Using in_progress from Supabase for our inProgress field
     startTime: match.start_time ? new Date(match.start_time) : undefined,
     endTime: match.end_time ? new Date(match.end_time) : undefined
   };
