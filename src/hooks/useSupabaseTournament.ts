@@ -1,5 +1,5 @@
-
-import { Match, Team } from "@/lib/types";
+import { useState } from 'react';
+import { Match, Team, Tournament } from "@/lib/types";
 import { Tables } from "@/integrations/supabase/types";
 
 // Define SupabaseMatch type based on the database table structure
@@ -7,85 +7,82 @@ export type SupabaseMatch = Tables<"matches">;
 
 // Function to convert a match to Supabase format
 export const matchToSupabase = (
-  match: Match, 
-  tournamentId: string,
-  teamMap: Record<string, string> // Maps local team IDs to Supabase team IDs
-): Omit<SupabaseMatch, 'id' | 'created_at' | 'updated_at'> => {
+  match: Match
+): Omit<SupabaseMatch, "id" | "created_at" | "updated_at"> => {
   return {
-    tournament_id: tournamentId,
-    team_a_id: match.teamA.id === 'bye' ? null : teamMap[match.teamA.id],
-    team_b_id: match.teamB.id === 'bye' ? null : teamMap[match.teamB.id],
+    team_a_id: match.teamA.id,
+    team_b_id: match.teamB.id,
     score_a: match.scoreA,
     score_b: match.scoreB,
-    winner_id: match.winner ? teamMap[match.winner.id] || null : null,
+    winner_id: match.winner?.id,
     round: match.round,
     table_number: match.tableNumber || null,
     completed: match.completed,
-    in_progress: match.inProgress,  // Fixed: Using in_progress instead of inProgress for the Supabase format
-    start_time: match.startTime ? match.startTime.toISOString() : null,
-    end_time: match.endTime ? match.endTime.toISOString() : null
+    in_progress: match.inProgress,
+    start_time: match.startTime?.toISOString() || null,
+    end_time: match.endTime?.toISOString() || null,
   };
 };
 
-// Function to convert a Supabase match to local format with complete team references
-export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, Team>): Match => {
-  // Create default "bye" team for null references
-  const byeTeam: Team = { 
-    id: 'bye', 
-    name: 'Bye', 
-    players: ['', ''] as [string, string], 
-    eliminated: false, 
-    totalPoints: 0, 
-    lives: 0, 
-    reEntered: false 
-  };
+// Function to convert a Supabase match to our app's Match format
+export const supabaseToMatch = (
+  supabaseMatch: SupabaseMatch,
+  teams: Team[]
+): Match => {
+  const teamA = teams.find((team) => team.id === supabaseMatch.team_a_id);
+  const teamB = teams.find((team) => team.id === supabaseMatch.team_b_id);
+  const winner = teams.find((team) => team.id === supabaseMatch.winner_id);
 
-  // Use the complete team objects from teamsMap to ensure all properties are available
-  const teamA = match.team_a_id && teamsMap[match.team_a_id] 
-    ? structuredClone(teamsMap[match.team_a_id]) // Use structuredClone for deep copy
-    : structuredClone(byeTeam);
-
-  const teamB = match.team_b_id && teamsMap[match.team_b_id] 
-    ? structuredClone(teamsMap[match.team_b_id]) // Use structuredClone for deep copy
-    : structuredClone(byeTeam);
-
-  // For winner, also make sure to get the full team object
-  const winner = match.winner_id && teamsMap[match.winner_id] 
-    ? structuredClone(teamsMap[match.winner_id]) // Use structuredClone for deep copy
-    : undefined;
-
-  // Log to debug team references
-  console.log(`Match ${match.id} loaded with teamA ${teamA.id} (${teamA.name}), teamB ${teamB.id} (${teamB.name})`);
-  if (winner) {
-    console.log(`Match winner: ${winner.id} (${winner.name})`);
+  if (!teamA || !teamB) {
+    console.error(
+      `Team not found for match ${supabaseMatch.id}: A=${supabaseMatch.team_a_id}, B=${supabaseMatch.team_b_id}`
+    );
   }
 
-  // Create the match with complete team references and ensure all fields are properly set
   return {
-    id: match.id,
-    teamA,
-    teamB,
-    scoreA: match.score_a,
-    scoreB: match.score_b,
-    winner,
-    round: match.round,
-    tableNumber: match.table_number || undefined,
-    completed: match.completed,
-    inProgress: match.in_progress, // Fixed: Using in_progress from Supabase for our inProgress field
-    startTime: match.start_time ? new Date(match.start_time) : undefined,
-    endTime: match.end_time ? new Date(match.end_time) : undefined
+    id: supabaseMatch.id,
+    teamA: teamA || { id: supabaseMatch.team_a_id, name: "Unknown Team A", players: ["", ""], eliminated: false, totalPoints: 0, lives: 2, reEntered: false },
+    teamB: teamB || { id: supabaseMatch.team_b_id, name: "Unknown Team B", players: ["", ""], eliminated: false, totalPoints: 0, lives: 2, reEntered: false },
+    scoreA: supabaseMatch.score_a,
+    scoreB: supabaseMatch.score_b,
+    winner: winner,
+    round: supabaseMatch.round,
+    tableNumber: supabaseMatch.table_number || undefined,
+    completed: supabaseMatch.completed,
+    inProgress: supabaseMatch.in_progress,
+    startTime: supabaseMatch.start_time ? new Date(supabaseMatch.start_time) : undefined,
+    endTime: supabaseMatch.end_time ? new Date(supabaseMatch.end_time) : undefined,
   };
 };
 
-// Export the hook that was missing
+// Export the hook with the correct function signatures
 export const useSupabaseTournament = () => {
-  // Implement the hook or provide a mock implementation
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const createTournament = async (newTournament: Tournament) => {
+    console.log("Creating tournament:", newTournament);
+    return newTournament;
+  };
+
+  const updateTournament = async (updatedTournament: Tournament) => {
+    console.log("Updating tournament:", updatedTournament);
+    return updatedTournament;
+  };
+
+  const resetTournament = async () => {
+    console.log("Resetting tournament");
+    // This doesn't take an id parameter now, but returns boolean
+    return true;
+  };
+
   return {
-    tournament: null,
-    loading: false,
-    error: null,
-    createTournament: async () => {},
-    updateTournament: async () => {},
-    resetTournament: async () => {}
+    tournament,
+    loading,
+    error,
+    createTournament,
+    updateTournament,
+    resetTournament
   };
 };

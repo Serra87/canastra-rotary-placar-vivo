@@ -26,6 +26,7 @@ interface ManualMatchCreatorProps {
   roundNumber?: number;
   existingMatches?: Match[]; // Add this to check for teams already playing in the round
   currentRound?: string;
+  disabled?: boolean; // Add the disabled prop
 }
 
 export const ManualMatchCreator = ({ 
@@ -33,7 +34,8 @@ export const ManualMatchCreator = ({
   onCreateMatch, 
   roundNumber = 1, 
   existingMatches = [],
-  currentRound = "RODADA 1"
+  currentRound = "RODADA 1",
+  disabled = false // Add default value
 }: ManualMatchCreatorProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -112,7 +114,7 @@ export const ManualMatchCreator = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" id="manual-match-creator">Criar Partida Manual</Button>
+        <Button variant="default" id="manual-match-creator" disabled={disabled}>Criar Partida Manual</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
