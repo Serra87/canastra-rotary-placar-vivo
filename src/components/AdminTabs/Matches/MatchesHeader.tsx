@@ -13,8 +13,8 @@ interface MatchesHeaderProps {
   onNextRound: () => void;
   hasIncompleteMatches: boolean;
   disabled?: boolean;
-  maxRoundNumber?: number; // New prop for max round number
-  adminMode?: boolean; // New prop for admin mode
+  maxRoundNumber?: number;
+  adminMode?: boolean;
 }
 
 const MatchesHeader: React.FC<MatchesHeaderProps> = ({
@@ -27,7 +27,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({
   hasIncompleteMatches,
   disabled = false,
   maxRoundNumber = 1,
-  adminMode = false,
+  adminMode = true, // Default to admin mode
 }) => {
   return (
     <div className="flex justify-between items-center">

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { toast } from "@/hooks/use-toast";
 import DebugPanel from "@/components/AdminTabs/DebugPanel";
 import { Tournament } from "@/lib/types";
@@ -10,38 +10,22 @@ interface AdminDebugModeProps {
 }
 
 const AdminDebugMode: React.FC<AdminDebugModeProps> = ({ tournament, onUpdateTournament }) => {
-  const [debugMode, setDebugMode] = useState(false);
-  
-  // Check for debug mode on mount and enable if special key is pressed
-  useEffect(() => {
-    const checkDebugMode = (e: KeyboardEvent) => {
-      // Enable debug mode with Ctrl+Shift+D
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        setDebugMode(prev => {
-          const newMode = !prev;
-          toast({
-            title: newMode ? "Modo Debug Ativado" : "Modo Debug Desativado",
-            description: newMode ? "Funcionalidades de diagnóstico disponíveis" : "Voltando ao modo normal"
-          });
-          return newMode;
-        });
-        e.preventDefault();
-      }
-    };
-    
-    window.addEventListener('keydown', checkDebugMode);
-    return () => window.removeEventListener('keydown', checkDebugMode);
-  }, []);
+  // Debug mode always active - removed keyboard shortcut dependency
+  const debugMode = true;
 
-  if (!debugMode || !tournament) {
+  if (!tournament) {
     return null;
   }
 
   return (
-    <DebugPanel 
-      tournament={tournament} 
-      onUpdateTournament={onUpdateTournament} 
-    />
+    <>
+      {debugMode && (
+        <DebugPanel 
+          tournament={tournament} 
+          onUpdateTournament={onUpdateTournament} 
+        />
+      )}
+    </>
   );
 };
 

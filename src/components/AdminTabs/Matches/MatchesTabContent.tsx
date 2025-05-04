@@ -18,7 +18,7 @@ interface MatchesTabContentProps {
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
   disabled?: boolean;
-  showAllRounds?: boolean; // New prop to control visibility of all rounds
+  showAllRounds?: boolean;
 }
 
 const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
@@ -32,7 +32,7 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
   onSetWinner,
   onDeleteMatch,
   disabled = false,
-  showAllRounds = false
+  showAllRounds = true // Default to true
 }) => {
   const currentRoundMatches = matchesByRound[tournament.currentRound] || [];
   
@@ -95,7 +95,7 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
           onDeleteMatch={onDeleteMatch}
           disabled={disabled}
           maxRound={tournament.maxRound || 1}
-          showAllPossibleRounds={showAllRounds} // Pass the showAllRounds prop
+          showAllPossibleRounds={showAllRounds}
         />
       </TabsContent>
     </Tabs>

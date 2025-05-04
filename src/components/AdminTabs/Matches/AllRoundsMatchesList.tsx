@@ -14,9 +14,9 @@ interface AllRoundsMatchesListProps {
   onCompleteMatch: (matchId: string) => void;
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
-  disabled?: boolean; // Add the disabled prop that was missing
-  maxRound?: number; // Add maxRound prop
-  showAllPossibleRounds?: boolean; // Add showAllPossibleRounds prop
+  disabled?: boolean;
+  maxRound?: number;
+  showAllPossibleRounds?: boolean;
 }
 
 const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
@@ -30,9 +30,9 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
   onCompleteMatch,
   onSetWinner,
   onDeleteMatch,
-  disabled = false, // Add the default value
-  maxRound = 1, // Default value for maxRound
-  showAllPossibleRounds = false // Default value
+  disabled = false,
+  maxRound = 1,
+  showAllPossibleRounds = true // Default to show all rounds
 }) => {
   // Generate all possible rounds if showAllPossibleRounds is true
   const displayRounds = showAllPossibleRounds 
@@ -73,7 +73,7 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
               onCompleteMatch={() => onCompleteMatch(match.id)}
               onSetWinner={onSetWinner}
               onDeleteMatch={() => onDeleteMatch(match.id)}
-              disabled={disabled || round !== currentRound}
+              disabled={disabled} // Remove restriction to only edit current round matches
             />
           ))}
           
@@ -82,7 +82,7 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
             <div className="text-center py-4 bg-gray-50 rounded-lg">
               <p className="text-gray-400 text-sm">
                 Nenhuma partida nesta rodada. 
-                {round !== currentRound ? " Crie partidas manualmente ou avance para esta rodada." : ""}
+                {round !== currentRound ? " Crie partidas manualmente para esta rodada." : ""}
               </p>
             </div>
           )}

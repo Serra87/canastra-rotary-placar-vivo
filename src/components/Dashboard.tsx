@@ -1,11 +1,10 @@
 
 import React from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TrophyIcon, ArrowRight, CalendarIcon, UsersIcon } from "lucide-react";
+import { TrophyIcon, ArrowRight, UsersIcon } from "lucide-react";
 import { useTournament } from "@/context/tournament/TournamentContext";
 
 interface StatCardProps {
@@ -58,8 +57,8 @@ const Dashboard = () => {
   
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {[1, 2].map((i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
               <div className="animate-pulse h-5 bg-gray-200 rounded w-1/2"></div>
@@ -74,42 +73,15 @@ const Dashboard = () => {
     );
   }
   
-  // Format date properly
-  const formatDate = (dateValue: Date | string) => {
-    if (!dateValue) return "";
-    
-    try {
-      const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
-      return date.toLocaleDateString('pt-BR');
-    } catch (error) {
-      return "";
-    }
-  };
-  
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <StatCard 
           title="Times Ativos" 
           value={stats.activeTeams}
           description={`De um total de ${tournament.teams.length} times`}
           icon={<UsersIcon size={18} />}
           variant="success"
-        />
-        
-        <StatCard 
-          title="Rodada Atual" 
-          value={tournament.currentRound}
-          description={`${stats.currentRoundCompleted} de ${stats.currentRoundMatches} partidas concluídas`}
-          icon={<Badge variant="outline" className="bg-rotary-gold text-white">{tournament.currentRound}</Badge>}
-        />
-        
-        <StatCard 
-          title="Progresso do Torneio" 
-          value={`${stats.completionPercentage}%`}
-          description={`${stats.completedMatches} de ${stats.totalMatches} partidas concluídas`}
-          icon={<CalendarIcon size={18} />}
-          variant="default"
         />
         
         <StatCard 
@@ -123,22 +95,13 @@ const Dashboard = () => {
       
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Progresso da Rodada Atual</CardTitle>
+          <CardTitle>Gerenciamento do Torneio</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Partidas concluídas: {stats.currentRoundCompleted} de {stats.currentRoundMatches}</span>
-              <span className="font-medium">{stats.currentRoundProgress}%</span>
-            </div>
-            <Progress value={stats.currentRoundProgress} className="h-2" />
-          </div>
-        </CardContent>
-        <CardFooter className="bg-gray-50 rounded-b-lg border-t">
           <div className="flex items-center justify-between w-full">
             <div>
               <p className="text-sm text-gray-500">
-                Torneio iniciado em {formatDate(tournament.date)}
+                {tournament.name} - {tournament.currentRound}
               </p>
             </div>
             <Link to="/admin">
@@ -148,7 +111,7 @@ const Dashboard = () => {
               </Button>
             </Link>
           </div>
-        </CardFooter>
+        </CardContent>
       </Card>
     </>
   );

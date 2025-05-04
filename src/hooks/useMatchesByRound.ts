@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 interface UseMatchesByRoundResult {
   matchesByRound: Record<string, Match[]>;
   rounds: string[];
-  allPossibleRounds: string[]; // New property to track all possible rounds
+  allPossibleRounds: string[];
 }
 
 /**
@@ -52,9 +52,9 @@ export const useMatchesByRound = (matches: Match[], maxRoundNumber = 1): UseMatc
       return aNum - bNum;
     });
     
-    console.log("Grouped matches by round:", groupedMatches);
-    console.log("Sorted rounds:", sortedRounds);
-    console.log("All possible rounds:", possibleRounds);
+    console.log("Current round:", possibleRounds);
+    console.log("Matches in current round:", groupedMatches[possibleRounds[possibleRounds.length - 1]]?.length || 0);
+    console.log("Has incomplete matches:", false);
     
     setMatchesByRound(groupedMatches);
     setRounds(sortedRounds);
