@@ -11,7 +11,6 @@ import { generateUUID } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import AdminHeader from "@/components/Admin/AdminHeader";
 import TournamentSummary from "@/components/Admin/TournamentSummary";
-import AdminDebugMode from "@/components/Admin/AdminDebugMode";
 
 const Admin = () => {
   const { tournament, updateTournament, resetTournament, loading, isUpdating } = useTournament();
@@ -94,18 +93,11 @@ const Admin = () => {
         />
         
         {tournament?.id && (
-          <>
-            <AdminPanel 
-              tournament={tournament} 
-              onUpdateTournament={updateTournament}
-              loading={isUpdating}
-            />
-            
-            <AdminDebugMode 
-              tournament={tournament} 
-              onUpdateTournament={updateTournament} 
-            />
-          </>
+          <AdminPanel 
+            tournament={tournament} 
+            onUpdateTournament={updateTournament}
+            loading={isUpdating}
+          />
         )}
       </main>
       

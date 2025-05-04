@@ -24,9 +24,10 @@ export const AdminPanel = ({ tournament, onUpdateTournament, loading = false }: 
   });
   
   // Add state for active tab
-  const [activeTab, setActiveTab] = useState("matches");
+  const [activeTab, setActiveTab] = useState("teams");
   
   // Update local state when parent tournament changes (including reset)
+  // But don't update the active tab when this happens
   useEffect(() => {
     setCurrentTournament({
       ...tournament,
@@ -53,21 +54,21 @@ export const AdminPanel = ({ tournament, onUpdateTournament, loading = false }: 
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="matches">Partidas</TabsTrigger>
           <TabsTrigger value="teams">Times</TabsTrigger>
+          <TabsTrigger value="matches">Partidas</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="matches">
-          <MatchesTab 
+        <TabsContent value="teams">
+          <TeamsTab 
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
             loading={loading}
           />
         </TabsContent>
         
-        <TabsContent value="teams">
-          <TeamsTab 
+        <TabsContent value="matches">
+          <MatchesTab 
             tournament={currentTournament}
             onUpdateTournament={handleUpdateTournament}
             loading={loading}

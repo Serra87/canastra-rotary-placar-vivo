@@ -1,7 +1,5 @@
 
 import React from "react";
-import { toast } from "@/hooks/use-toast";
-import DebugPanel from "@/components/AdminTabs/DebugPanel";
 import { Tournament } from "@/lib/types";
 
 interface AdminDebugModeProps {
@@ -9,24 +7,9 @@ interface AdminDebugModeProps {
   onUpdateTournament: (tournament: Tournament) => void;
 }
 
-const AdminDebugMode: React.FC<AdminDebugModeProps> = ({ tournament, onUpdateTournament }) => {
-  // Debug mode always active - removed keyboard shortcut dependency
-  const debugMode = true;
-
-  if (!tournament) {
-    return null;
-  }
-
-  return (
-    <>
-      {debugMode && (
-        <DebugPanel 
-          tournament={tournament} 
-          onUpdateTournament={onUpdateTournament} 
-        />
-      )}
-    </>
-  );
+const AdminDebugMode: React.FC<AdminDebugModeProps> = () => {
+  // This component is now empty as per user request to remove debug functionality
+  return null;
 };
 
 export default AdminDebugMode;

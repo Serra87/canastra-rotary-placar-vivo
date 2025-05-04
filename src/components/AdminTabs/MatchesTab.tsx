@@ -7,8 +7,6 @@ import MatchesTabContent from "./Matches/MatchesTabContent";
 import MatchesSkeleton from "./Matches/MatchesSkeleton";
 import MatchesHeader from "./Matches/MatchesHeader";
 import { toast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 interface MatchesTabProps {
@@ -20,7 +18,6 @@ interface MatchesTabProps {
 const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament, loading = false }) => {
   const currentRoundNumber = parseInt(tournament.currentRound.replace(/\D/g, '') || "1");
   const [processingAction, setProcessingAction] = useState(false);
-  const [adminMode, setAdminMode] = useState(true); // Admin mode enabled by default
   
   // Use the match management hook to handle match operations
   const {
@@ -155,26 +152,10 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
     );
   }
   
-  // Check if there are any incomplete matches in the current round
-  const currentRoundMatches = matchesByRound[tournament.currentRound] || [];
-  const hasIncompleteMatches = currentRoundMatches.some(match => !match.completed);
-  
   return (
     <Card>
       <CardHeader>
         <div className="flex flex-col space-y-4">
-          {/* Admin mode toggle */}
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="admin-mode" 
-              checked={adminMode} 
-              onCheckedChange={setAdminMode}
-            />
-            <Label htmlFor="admin-mode" className="text-sm font-medium">
-              Modo Administrador (permite avançar rodadas com partidas incompletas)
-            </Label>
-          </div>
-          
           <div className="flex justify-between items-center">
             <MatchesHeader 
               teams={tournament.teams}
@@ -183,13 +164,11 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
               currentRound={tournament.currentRound}
               onAddMatch={handleAddManualMatch}
               onNextRound={handleNextRound}
-              hasIncompleteMatches={hasIncompleteMatches && !adminMode} // Only restrict if not in admin mode
+              hasIncompleteMatches={false} // Removed restriction
               disabled={processingAction}
-              maxRoundNumber={tournament.maxRound || 1} // Pass max round number
-              adminMode={adminMode} // Pass admin mode state
+              maxRoundNumber={tournament.maxRound || 1}
             />
             
-            {/* Add Create Round button */}
             <Button 
               onClick={handleCreateRound}
               variant="outline"
@@ -213,7 +192,7 @@ const MatchesTab: React.FC<MatchesTabProps> = ({ tournament, onUpdateTournament,
           onSetWinner={handleSetWinner}
           onDeleteMatch={handleDeleteMatch}
           disabled={processingAction}
-          showAllRounds={true} // Always show all rounds in admin mode
+          showAllRounds={true}
         />
       </CardContent>
     </Card>
