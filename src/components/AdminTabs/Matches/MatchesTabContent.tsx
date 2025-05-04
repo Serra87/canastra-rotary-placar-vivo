@@ -95,7 +95,7 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
           onDeleteMatch={onDeleteMatch}
           disabled={disabled}
           maxRound={tournament.maxRound || 1}
-          showAllPossibleRounds={showAllRounds} // Show all possible rounds in admin mode
+          showAllPossibleRounds={showAllRounds} // Pass the showAllRounds prop
         />
       </TabsContent>
     </Tabs>

@@ -15,6 +15,8 @@ interface AllRoundsMatchesListProps {
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
   disabled?: boolean; // Add the disabled prop that was missing
+  maxRound?: number; // Add maxRound prop
+  showAllPossibleRounds?: boolean; // Add showAllPossibleRounds prop
 }
 
 const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
@@ -28,9 +30,16 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
   onCompleteMatch,
   onSetWinner,
   onDeleteMatch,
-  disabled = false // Add the default value
+  disabled = false, // Add the default value
+  maxRound = 1, // Default value for maxRound
+  showAllPossibleRounds = false // Default value
 }) => {
-  if (rounds.length === 0) {
+  // Generate all possible rounds if showAllPossibleRounds is true
+  const displayRounds = showAllPossibleRounds 
+    ? Array.from({ length: maxRound }, (_, i) => `RODADA ${i + 1}`)
+    : rounds;
+  
+  if (displayRounds.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg">
         <p className="text-gray-500 text-lg">
@@ -42,7 +51,7 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
 
   return (
     <div className="space-y-8">
-      {rounds.map(round => (
+      {displayRounds.map(round => (
         <div key={round} className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">{round}</h3>
@@ -67,6 +76,16 @@ const AllRoundsMatchesList: React.FC<AllRoundsMatchesListProps> = ({
               disabled={disabled || round !== currentRound}
             />
           ))}
+          
+          {/* Show a message when there are no matches in a round but it's shown because of showAllPossibleRounds */}
+          {showAllPossibleRounds && (!matchesByRound[round] || matchesByRound[round].length === 0) && (
+            <div className="text-center py-4 bg-gray-50 rounded-lg">
+              <p className="text-gray-400 text-sm">
+                Nenhuma partida nesta rodada. 
+                {round !== currentRound ? " Crie partidas manualmente ou avance para esta rodada." : ""}
+              </p>
+            </div>
+          )}
         </div>
       ))}
     </div>
