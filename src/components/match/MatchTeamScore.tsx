@@ -32,7 +32,9 @@ export const MatchTeamScore: React.FC<MatchTeamScoreProps> = ({
     return null;
   }
 
-  console.log("Rendering MatchTeamScore for team:", team?.id, team?.name);
+  // Log complete team object for debugging
+  console.log("Full team object in MatchTeamScore:", team);
+  console.log("Team ID:", team?.id, "Team Name:", team?.name);
   
   return (
     <div className="border-b pb-3">

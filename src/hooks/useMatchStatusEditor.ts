@@ -40,7 +40,7 @@ export function useMatchStatusEditor({
 
   // Update state when match properties change
   useEffect(() => {
-    console.log("Match updated in useMatchStatusEditor:", match);
+    console.log("Match updated in useMatchStatusEditor:", match.id);
     setStatus(match.completed ? "Finalizada" : match.inProgress ? "Iniciada" : "Aguardando");
     setScoreA(match.scoreA || 0);
     setScoreB(match.scoreB || 0);
@@ -50,8 +50,8 @@ export function useMatchStatusEditor({
     
     // Debug logs to help identify issues
     console.log("Teams available:", teams.length);
-    console.log("Match teamA:", match.teamA?.id, match.teamA?.name);
-    console.log("Match teamB:", match.teamB?.id, match.teamB?.name);
+    console.log("Match teamA:", match.teamA?.id, match.teamA?.name, "lives:", match.teamA?.lives);
+    console.log("Match teamB:", match.teamB?.id, match.teamB?.name, "lives:", match.teamB?.lives);
   }, [match, teams]);
 
   const handleStatusChange = (value: string) => {
@@ -125,10 +125,12 @@ export function useMatchStatusEditor({
     
     // Find the winning team reference
     const winningTeamId = winner;
+    console.log("Finding winning team with ID:", winningTeamId);
     const winningTeam = teams.find((t) => t.id === winningTeamId);
     
     if (!winningTeam) {
       console.error("Winning team not found:", winningTeamId);
+      console.log("Available teams:", teams.map(t => `${t.id} - ${t.name}`).join(", "));
       toast({ 
         title: "Erro ao definir vencedor", 
         description: "Time vencedor não encontrado",

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tournament, Team, Match } from "@/lib/types";
 import { supabase, ensureValidUUID, generateUUID } from "@/integrations/supabase/client";
@@ -129,8 +128,7 @@ export const matchToSupabase = (
   };
 };
 
-// Function to convert a Supabase match to local format
-// MAJOR FIX: Enhanced to ensure full Team objects are correctly linked in the match
+// Function to convert a Supabase match to local format with complete team references
 export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, Team>): Match => {
   // Create default "bye" team for null references
   const byeTeam: Team = { 
@@ -145,17 +143,23 @@ export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, T
 
   // Use the complete team objects from teamsMap to ensure all properties are available
   const teamA = match.team_a_id && teamsMap[match.team_a_id] 
-    ? { ...teamsMap[match.team_a_id] } // Create a copy to avoid reference issues
-    : byeTeam;
+    ? { ...teamsMap[match.team_a_id] } // Create a proper deep copy to avoid reference issues
+    : { ...byeTeam };
 
   const teamB = match.team_b_id && teamsMap[match.team_b_id] 
-    ? { ...teamsMap[match.team_b_id] } // Create a copy to avoid reference issues
-    : byeTeam;
+    ? { ...teamsMap[match.team_b_id] } // Create a proper deep copy to avoid reference issues
+    : { ...byeTeam };
 
   // For winner, also make sure to get the full team object
   const winner = match.winner_id && teamsMap[match.winner_id] 
-    ? { ...teamsMap[match.winner_id] } // Create a copy to avoid reference issues
+    ? { ...teamsMap[match.winner_id] } // Create a proper deep copy to avoid reference issues
     : undefined;
+
+  // Log to debug team references
+  console.log(`Match ${match.id} loaded with teamA ${teamA.id} (${teamA.name}), teamB ${teamB.id} (${teamB.name})`);
+  if (winner) {
+    console.log(`Match winner: ${winner.id} (${winner.name})`);
+  }
 
   // Create the match with complete team references
   return {
@@ -168,7 +172,7 @@ export const supabaseToMatch = (match: SupabaseMatch, teamsMap: Record<string, T
     round: match.round,
     tableNumber: match.table_number || undefined,
     completed: match.completed,
-    inProgress: match.in_progress,
+    inProgress: match.inProgress,
     startTime: match.start_time ? new Date(match.start_time) : undefined,
     endTime: match.end_time ? new Date(match.end_time) : undefined
   };

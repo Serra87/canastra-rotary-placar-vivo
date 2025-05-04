@@ -50,12 +50,19 @@ export const MatchResultDialog: React.FC<MatchResultDialogProps> = ({
   disabled = false
 }) => {
   console.log("Rendering ResultDialog, open:", open);
+  console.log("Match in ResultDialog:", match.id);
   console.log("Team A:", match.teamA?.id, match.teamA?.name);
   console.log("Team B:", match.teamB?.id, match.teamB?.name);
   
+  // Safety check for missing team data
+  if (!match.teamA || !match.teamB) {
+    console.error("Missing team data in MatchResultDialog");
+    return null;
+  }
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Resultado da Partida</DialogTitle>
         </DialogHeader>

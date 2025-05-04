@@ -57,6 +57,7 @@ export default function MatchStatusEditor({
   });
 
   console.log("Match status:", status, "Show dialog:", showResultDialog);
+  console.log("Team A lives:", teamALives, "Team B lives:", teamBLives);
 
   return (
     <div className="space-y-4">
@@ -66,6 +67,7 @@ export default function MatchStatusEditor({
         disabled={disabled || !hasTeamNames}
       />
 
+      {/* Ensure all required props are passed to the dialog */}
       <MatchResultDialog 
         match={match}
         open={showResultDialog}
@@ -91,7 +93,10 @@ export default function MatchStatusEditor({
         }}
         onTeamALivesUpdate={(increment) => handleUpdateTeamLives('A', increment)}
         onTeamBLivesUpdate={(increment) => handleUpdateTeamLives('B', increment)}
-        onWinnerChange={setWinner}
+        onWinnerChange={(value) => {
+          console.log("Setting winner to:", value);
+          setWinner(value);
+        }}
         onConfirmResult={handleConfirmResult}
         disabled={disabled}
       />

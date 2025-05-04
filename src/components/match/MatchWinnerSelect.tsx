@@ -32,7 +32,7 @@ export const MatchWinnerSelect: React.FC<MatchWinnerSelectProps> = ({
   
   // Safety check for missing team data
   if (!match.teamA || !match.teamB) {
-    console.error("Missing team data in MatchWinnerSelect");
+    console.error("Missing team data in MatchWinnerSelect, TeamA:", !!match.teamA, "TeamB:", !!match.teamB);
     return null;
   }
   
