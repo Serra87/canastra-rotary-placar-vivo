@@ -5,20 +5,25 @@ import { useState, useEffect } from "react";
 interface UseMatchesByRoundResult {
   matchesByRound: Record<string, Match[]>;
   rounds: string[];
+  allPossibleRounds: string[]; // New property to track all possible rounds
 }
 
 /**
  * Hook for grouping matches by round and sorting rounds
  */
-export const useMatchesByRound = (matches: Match[]): UseMatchesByRoundResult => {
+export const useMatchesByRound = (matches: Match[], maxRoundNumber = 1): UseMatchesByRoundResult => {
   const [matchesByRound, setMatchesByRound] = useState<Record<string, Match[]>>({});
   const [rounds, setRounds] = useState<string[]>([]);
+  const [allPossibleRounds, setAllPossibleRounds] = useState<string[]>([]);
   
   useEffect(() => {
     // Group matches by round
     const groupedMatches: Record<string, Match[]> = {};
     matches.forEach(match => {
-      if (!match.round) return; // Skip matches without a round
+      if (!match.round) {
+        console.warn("Match without round found:", match.id);
+        return;
+      }
       
       // Ensure all rounds are formatted consistently
       const roundKey = match.round.startsWith("RODADA") ? match.round : `RODADA ${match.round}`;
@@ -29,16 +34,31 @@ export const useMatchesByRound = (matches: Match[]): UseMatchesByRoundResult => 
       groupedMatches[roundKey].push(match);
     });
     
-    // Get all rounds in order
+    // Generate all possible rounds based on maxRoundNumber
+    const possibleRounds = Array.from({ length: maxRoundNumber }, (_, i) => `RODADA ${i + 1}`);
+    setAllPossibleRounds(possibleRounds);
+    
+    // Ensure all potential rounds have entries in the object, even if empty
+    possibleRounds.forEach(round => {
+      if (!groupedMatches[round]) {
+        groupedMatches[round] = [];
+      }
+    });
+    
+    // Get all rounds in order, including empty ones
     const sortedRounds = Object.keys(groupedMatches).sort((a, b) => {
       const aNum = parseInt(a.replace(/\D/g, '') || "1");
       const bNum = parseInt(b.replace(/\D/g, '') || "1");
       return aNum - bNum;
     });
     
+    console.log("Grouped matches by round:", groupedMatches);
+    console.log("Sorted rounds:", sortedRounds);
+    console.log("All possible rounds:", possibleRounds);
+    
     setMatchesByRound(groupedMatches);
     setRounds(sortedRounds);
-  }, [matches]);
+  }, [matches, maxRoundNumber]);
   
-  return { matchesByRound, rounds };
+  return { matchesByRound, rounds, allPossibleRounds };
 };

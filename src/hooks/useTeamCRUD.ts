@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Team } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { generateUUID } from "@/integrations/supabase/client";
 
 interface UseTeamCRUDProps {
   initialTeams: Team[];
@@ -15,9 +16,12 @@ export const useTeamCRUD = ({
   const [teams, setTeams] = useState<Team[]>(initialTeams);
   const { toast } = useToast();
 
-  // Handle adding a new team
+  // Handle adding a new team with proper UUID generation
   const handleAddTeam = () => {
-    const newTeamId = `team-${Date.now()}`;
+    // Generate a proper UUID for Supabase compatibility
+    const newTeamId = generateUUID();
+    
+    console.log("Creating new team with ID:", newTeamId);
     
     const newTeam: Team = {
       id: newTeamId,
@@ -33,8 +37,16 @@ export const useTeamCRUD = ({
     setTeams(updatedTeams);
     
     if (onUpdateTeams) {
+      console.log("Updating teams in parent component");
       onUpdateTeams(updatedTeams);
+    } else {
+      console.warn("No onUpdateTeams callback provided");
     }
+    
+    toast({
+      title: "Time adicionado",
+      description: `${newTeam.name} foi adicionado ao torneio.`
+    });
     
     return newTeam;
   };

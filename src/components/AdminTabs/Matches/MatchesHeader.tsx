@@ -12,7 +12,9 @@ interface MatchesHeaderProps {
   onAddMatch: (match: Match) => void;
   onNextRound: () => void;
   hasIncompleteMatches: boolean;
-  disabled?: boolean; // Add the disabled prop
+  disabled?: boolean;
+  maxRoundNumber?: number; // New prop for max round number
+  adminMode?: boolean; // New prop for admin mode
 }
 
 const MatchesHeader: React.FC<MatchesHeaderProps> = ({
@@ -23,11 +25,16 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({
   onAddMatch,
   onNextRound,
   hasIncompleteMatches,
-  disabled = false, // Add default value
+  disabled = false,
+  maxRoundNumber = 1,
+  adminMode = false,
 }) => {
   return (
     <div className="flex justify-between items-center">
-      <h2 className="text-xl font-semibold">Gerenciar Partidas</h2>
+      <h2 className="text-xl font-semibold">
+        Gerenciar Partidas 
+        {adminMode && <span className="text-amber-500 ml-2">(Modo Admin)</span>}
+      </h2>
       <div className="space-x-2">
         <ManualMatchCreator
           teams={teams}
@@ -40,9 +47,10 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({
         <Button
           onClick={onNextRound}
           disabled={hasIncompleteMatches || disabled}
-          title={hasIncompleteMatches ? "Finalize todas as partidas da rodada atual antes de avançar" : ""}
+          title={hasIncompleteMatches ? (adminMode ? "Avançando mesmo com partidas incompletas (modo admin)" : "Finalize todas as partidas da rodada atual antes de avançar") : ""}
+          variant={adminMode && hasIncompleteMatches ? "destructive" : "default"}
         >
-          Próxima Rodada
+          {adminMode && hasIncompleteMatches ? "Forçar Próxima Rodada" : "Próxima Rodada"}
         </Button>
       </div>
     </div>

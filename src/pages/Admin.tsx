@@ -14,10 +14,33 @@ import { generateUUID } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { CalendarIcon, Trophy } from "lucide-react";
+import DebugPanel from "@/components/AdminTabs/DebugPanel"; // Import the debug panel
 
 const Admin = () => {
   const { tournament, updateTournament, resetTournament, loading, isUpdating } = useTournament();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [debugMode, setDebugMode] = useState(false); // Add debug mode state
+
+  // Check for debug mode on mount and enable if special key is pressed
+  useEffect(() => {
+    const checkDebugMode = (e: KeyboardEvent) => {
+      // Enable debug mode with Ctrl+Shift+D
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        setDebugMode(prev => {
+          const newMode = !prev;
+          toast({
+            title: newMode ? "Modo Debug Ativado" : "Modo Debug Desativado",
+            description: newMode ? "Funcionalidades de diagnóstico disponíveis" : "Voltando ao modo normal"
+          });
+          return newMode;
+        });
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('keydown', checkDebugMode);
+    return () => window.removeEventListener('keydown', checkDebugMode);
+  }, []);
 
   // Função para inicializar um novo torneio (ou atualizar existente)
   const handleStartTournament = async () => {
@@ -174,11 +197,21 @@ const Admin = () => {
         )}
         
         {tournament?.id && (
-          <AdminPanel 
-            tournament={tournament} 
-            onUpdateTournament={updateTournament}
-            loading={isUpdating}
-          />
+          <>
+            <AdminPanel 
+              tournament={tournament} 
+              onUpdateTournament={updateTournament}
+              loading={isUpdating}
+            />
+            
+            {/* Show debug panel when in debug mode */}
+            {debugMode && (
+              <DebugPanel 
+                tournament={tournament} 
+                onUpdateTournament={updateTournament} 
+              />
+            )}
+          </>
         )}
       </main>
       

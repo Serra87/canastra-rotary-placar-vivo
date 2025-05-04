@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tournament, Match, Team } from "@/lib/types";
 import CurrentRoundMatchesList from "./CurrentRoundMatchesList";
 import AllRoundsMatchesList from "./AllRoundsMatchesList";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface MatchesTabContentProps {
   tournament: Tournament;
@@ -16,6 +18,7 @@ interface MatchesTabContentProps {
   onSetWinner: (matchId: string, team: "A" | "B") => void;
   onDeleteMatch: (matchId: string) => void;
   disabled?: boolean;
+  showAllRounds?: boolean; // New prop to control visibility of all rounds
 }
 
 const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
@@ -28,9 +31,18 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
   onCompleteMatch,
   onSetWinner,
   onDeleteMatch,
-  disabled = false
+  disabled = false,
+  showAllRounds = false
 }) => {
   const currentRoundMatches = matchesByRound[tournament.currentRound] || [];
+  
+  // Add debugging information
+  console.log("Tournament rounds data:", {
+    currentRound: tournament.currentRound,
+    maxRound: tournament.maxRound,
+    availableRounds: rounds,
+    matchesByRound
+  });
   
   return (
     <Tabs defaultValue="current">
@@ -44,6 +56,16 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">{tournament.currentRound}</h3>
           </div>
+          
+          {currentRoundMatches.length === 0 && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Nenhuma partida nesta rodada</AlertTitle>
+              <AlertDescription>
+                Adicione partidas manualmente ou avance para a próxima rodada.
+              </AlertDescription>
+            </Alert>
+          )}
           
           <CurrentRoundMatchesList
             matches={currentRoundMatches}
@@ -72,6 +94,8 @@ const MatchesTabContent: React.FC<MatchesTabContentProps> = ({
           onSetWinner={onSetWinner}
           onDeleteMatch={onDeleteMatch}
           disabled={disabled}
+          maxRound={tournament.maxRound || 1}
+          showAllPossibleRounds={showAllRounds} // Show all possible rounds in admin mode
         />
       </TabsContent>
     </Tabs>
