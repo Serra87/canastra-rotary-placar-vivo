@@ -74,64 +74,64 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ tournament, onUpdateTournament 
   return (
     <Card className="mt-4 border-amber-500 border-dashed">
       <CardHeader className="pb-2">
-        <CollapsibleTrigger asChild onClick={() => setIsOpen(!isOpen)}>
-          <div className="flex items-center justify-between cursor-pointer">
-            <CardTitle className="text-amber-500 flex items-center">
-              <Bug className="mr-2 h-5 w-5" />
-              Painel de Debug
-            </CardTitle>
-            {isOpen ? <ChevronUp /> : <ChevronDown />}
-          </div>
-        </CollapsibleTrigger>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between cursor-pointer">
+              <CardTitle className="text-amber-500 flex items-center">
+                <Bug className="mr-2 h-5 w-5" />
+                Painel de Debug
+              </CardTitle>
+              {isOpen ? <ChevronUp /> : <ChevronDown />}
+            </div>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-3">
+              <p className="text-sm text-gray-500">
+                Estas ferramentas são úteis para diagnóstico e teste, cuidado ao utilizá-las.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleForceAdvanceRound}
+                  className="border-amber-500"
+                >
+                  Forçar Próxima Rodada
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={handleFixMatchReferences}
+                  className="border-amber-500"
+                >
+                  Corrigir Referências de Times
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={handleResetTeamLives}
+                  className="border-amber-500"
+                >
+                  Resetar Vidas dos Times
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={handleDumpStateToConsole}
+                  className="border-amber-500"
+                >
+                  Log do Estado (Console)
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-500 mt-2">
+                Versão de Debug: v0.1 • ID do Torneio: {tournament.id.substring(0, 8)}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </CardHeader>
-      
-      <Collapsible open={isOpen}>
-        <CollapsibleContent>
-          <CardContent className="pt-0 space-y-3">
-            <p className="text-sm text-gray-500">
-              Estas ferramentas são úteis para diagnóstico e teste, cuidado ao utilizá-las.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleForceAdvanceRound}
-                className="border-amber-500"
-              >
-                Forçar Próxima Rodada
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={handleFixMatchReferences}
-                className="border-amber-500"
-              >
-                Corrigir Referências de Times
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={handleResetTeamLives}
-                className="border-amber-500"
-              >
-                Resetar Vidas dos Times
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={handleDumpStateToConsole}
-                className="border-amber-500"
-              >
-                Log do Estado (Console)
-              </Button>
-            </div>
-            
-            <div className="text-xs text-gray-500 mt-2">
-              Versão de Debug: v0.1 • ID do Torneio: {tournament.id.substring(0, 8)}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
     </Card>
   );
 };
